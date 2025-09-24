@@ -29,6 +29,7 @@ This section shows a recap of the delegates who publish an announcement, as well
 In proposals where metadata needs to be kept private until the end, we implement a two-layer encryption model which combines symmetric and asymmetric keys.
 
 The data that we need to encrypt includes:
+
 - **Human readable data**, explaining why the proposal should be approved
 - The **actions to execute** if the proposal passes
 
@@ -39,11 +40,14 @@ The data that we need to encrypt includes:
 3. The member fetches the public keys corresponding to the current Security Council members
 4. For each member's public key, he uses it to encrypt the key from step (1)
 5. This generates a payload with:
-  - The (symmetrically) encrypted metadata and proposals
-  - The (asymmetrically) encrypted keys that only each member can recover
+
+- The (symmetrically) encrypted metadata and proposals
+- The (asymmetrically) encrypted keys that only each member can recover
+
 6. The payload is pinned on IPFS
-  - The IPFS URI is published as the proposal metadata
-  - The hash of the unencrypted metadata is also published as part of the proposal
+
+- The IPFS URI is published as the proposal metadata
+- The hash of the unencrypted metadata is also published as part of the proposal
 
 ![](./readme-encryption-flow.png)
 
