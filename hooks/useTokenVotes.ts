@@ -1,4 +1,4 @@
-import { iVotesAbi } from "../plugins/members/artifacts/iVotes.sol";
+import { iVotesAbi } from "../plugins/crispVoting/artifacts/iVotes";
 import { PUB_CHAIN, PUB_TOKEN_ADDRESS } from "@/constants";
 import { type Address } from "viem";
 import { useReadContracts } from "wagmi";
