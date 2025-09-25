@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { getAbiItem } from "viem";
+import { AbiEvent, getAbiItem } from "viem";
 import { CrispVotingAbi } from "../artifacts/CrispVoting";
 import { Proposal, VoteCastEvent } from "../utils/types";
 import { usePublicClient } from "wagmi";
 import { PUB_CRISP_VOTING_PLUGIN_ADDRESS } from "@/constants";
 
-const event = getAbiItem({ abi: CrispVotingAbi, name: "VoteCast" });
+const event = getAbiItem({ abi: CrispVotingAbi, name: "VoteCast" }) as AbiEvent;
 
 export function useProposalVoteList(proposalId: bigint, proposal: Proposal | null) {
   const publicClient = usePublicClient();

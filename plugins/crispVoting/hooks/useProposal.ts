@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useBlockNumber, usePublicClient, useReadContract } from "wagmi";
-import { Hex, fromHex, getAbiItem } from "viem";
+import { AbiEvent, Hex, fromHex, getAbiItem } from "viem";
 import { CrispVotingAbi } from "../artifacts/CrispVoting";
 import { RawAction, ProposalMetadata } from "@/utils/types";
 import { Proposal, ProposalParameters, Tally } from "../utils/types";
@@ -22,7 +22,7 @@ type ProposalCreatedLogResponse = {
 export const ProposalCreatedEvent = getAbiItem({
   abi: CrispVotingAbi,
   name: "ProposalCreated",
-});
+}) as AbiEvent;
 
 export function useProposal(proposalId: bigint, autoRefresh = false) {
   const publicClient = usePublicClient();
