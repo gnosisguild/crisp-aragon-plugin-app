@@ -20,6 +20,7 @@ type ProposalInputs = {
 export default function ProposalCard(props: ProposalInputs) {
   const { address } = useAccount();
   const { proposal, status: proposalFetchStatus } = useProposal(props.proposalId);
+
   const votes = useProposalVoteList(props.proposalId, proposal);
   const { symbol: tokenSymbol } = useToken();
   const proposalStatus = useProposalStatus(proposal!);
@@ -27,8 +28,6 @@ export default function ProposalCard(props: ProposalInputs) {
 
   const hasVoted = false;
   const totalVotes = (proposal?.tally.yes || BigInt(0)) + (proposal?.tally.no || BigInt(0));
-
-  console.log("proposal", proposal);
 
   if (!proposal && showLoading) {
     return (

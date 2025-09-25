@@ -32,10 +32,12 @@ export const useProposalVariantStatus = (proposal: Proposal) => {
 export const useProposalStatus = (proposal: Proposal) => {
   const [status, setStatus] = useState<ProposalStatus>();
   const { tokenSupply: totalSupply } = useToken();
+
   useEffect(() => {
     if (!proposal || !proposal?.parameters || !totalSupply) return;
 
     const minVotingPower = (totalSupply * BigInt(proposal.parameters.minVotingPower)) / BigInt(1_000_000);
+
     const totalVotes = proposal.tally.yes + proposal.tally.no;
 
     if (proposal?.active) {
@@ -48,6 +50,8 @@ export const useProposalStatus = (proposal: Proposal) => {
       setStatus(ProposalStatus.EXECUTABLE);
     } else if (proposal.tally.no > proposal.tally.yes) {
       setStatus(ProposalStatus.REJECTED);
+    } else {
+      setStatus(ProposalStatus.PENDING);
     }
   }, [proposal?.tally, proposal?.active, proposal?.executed, proposal?.parameters?.minVotingPower, totalSupply]);
 
