@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useBlockNumber, usePublicClient, useReadContract } from "wagmi";
-import { Hex, fromHex, getAbiItem } from "viem";
+import { AbiEvent, Hex, fromHex, getAbiItem } from "viem";
 import { CrispVotingAbi } from "../artifacts/CrispVoting";
 import { RawAction, ProposalMetadata } from "@/utils/types";
 import { Proposal, ProposalParameters, Tally } from "../utils/types";
@@ -19,17 +19,16 @@ type ProposalCreatedLogResponse = {
   };
 };
 
-const ProposalCreatedEvent = getAbiItem({
+export const ProposalCreatedEvent = getAbiItem({
   abi: CrispVotingAbi,
   name: "ProposalCreated",
-});
+}) as AbiEvent;
 
-export function useProposal(proposalId: number, autoRefresh = false) {
+export function useProposal(proposalId: bigint, autoRefresh = false) {
   const publicClient = usePublicClient();
   const [proposalCreationEvent, setProposalCreationEvent] = useState<ProposalCreatedLogResponse["args"]>();
   const [metadataUri, setMetadataUri] = useState<string>();
   const { data: blockNumber } = useBlockNumber();
-
   // Proposal on-chain data
   const {
     data: proposalResult,
@@ -40,9 +39,10 @@ export function useProposal(proposalId: number, autoRefresh = false) {
     address: PUB_CRISP_VOTING_PLUGIN_ADDRESS,
     abi: CrispVotingAbi,
     functionName: "getProposal",
-    args: [BigInt(proposalId)],
+    args: [proposalId],
   });
-  const proposalData = decodeProposalResultData(proposalResult as any);
+
+  const proposalRaw = proposalResult as Proposal;
 
   useEffect(() => {
     if (autoRefresh) proposalRefetch();
@@ -50,17 +50,17 @@ export function useProposal(proposalId: number, autoRefresh = false) {
 
   // Creation event
   useEffect(() => {
-    if (!proposalData || !publicClient) return;
+    if (!proposalResult || !publicClient) return;
 
     publicClient
       .getLogs({
         address: PUB_CRISP_VOTING_PLUGIN_ADDRESS,
         event: ProposalCreatedEvent,
         args: {
-          proposalId: BigInt(proposalId),
+          proposalId,
         },
-        fromBlock: proposalData.parameters.snapshotBlock,
-        toBlock: proposalData.parameters.startDate,
+        fromBlock: proposalRaw.parameters.snapshotBlock,
+        toBlock: proposalRaw.parameters.startDate,
       })
       .then((logs) => {
         if (!logs || !logs.length) throw new Error("No creation logs");
@@ -72,7 +72,7 @@ export function useProposal(proposalId: number, autoRefresh = false) {
       .catch((err) => {
         console.error("Could not fetch the proposal details", err);
       });
-  }, [proposalData?.tally.yes, proposalData?.tally.no, proposalData?.tally.abstain, !!publicClient]);
+  }, [proposalRaw?.tally.yes, proposalRaw?.tally.no, !!publicClient]);
 
   // JSON metadata
   const {
@@ -81,7 +81,7 @@ export function useProposal(proposalId: number, autoRefresh = false) {
     error: metadataError,
   } = useMetadata<ProposalMetadata>(metadataUri);
 
-  const proposal = arrangeProposalData(proposalData, proposalCreationEvent, metadataContent);
+  const proposal = arrangeProposalData(proposalRaw, proposalCreationEvent, metadataContent);
 
   return {
     proposal,
@@ -98,7 +98,7 @@ export function useProposal(proposalId: number, autoRefresh = false) {
 
 // Helpers
 
-function decodeProposalResultData(data?: Array<any>) {
+function decodeProposalResultData(data?: any) {
   if (!data?.length || data.length < 6) return null;
 
   return {

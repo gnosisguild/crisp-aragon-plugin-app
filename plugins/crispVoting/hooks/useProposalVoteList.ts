@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
-import { getAbiItem } from "viem";
+import { AbiEvent, getAbiItem } from "viem";
 import { CrispVotingAbi } from "../artifacts/CrispVoting";
 import { Proposal, VoteCastEvent } from "../utils/types";
 import { usePublicClient } from "wagmi";
 import { PUB_CRISP_VOTING_PLUGIN_ADDRESS } from "@/constants";
 
-const event = getAbiItem({ abi: CrispVotingAbi, name: "VoteCast" });
+const event = getAbiItem({ abi: CrispVotingAbi, name: "VoteCast" }) as AbiEvent;
 
-export function useProposalVoteList(proposalId: number, proposal: Proposal | null) {
+export function useProposalVoteList(proposalId: bigint, proposal: Proposal | null) {
   const publicClient = usePublicClient();
   const [proposalLogs, setLogs] = useState<VoteCastEvent[]>([]);
 
@@ -19,7 +19,7 @@ export function useProposalVoteList(proposalId: number, proposal: Proposal | nul
       address: PUB_CRISP_VOTING_PLUGIN_ADDRESS,
       event: event,
       args: {
-        proposalId: BigInt(proposalId),
+        proposalId,
       },
       fromBlock: proposal.parameters.snapshotBlock,
       toBlock: "latest", // TODO: Make this variable between 'latest' and proposal last block

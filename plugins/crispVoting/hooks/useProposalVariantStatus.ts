@@ -11,7 +11,7 @@ export const useProposalVariantStatus = (proposal: Proposal) => {
     if (!proposal || !proposal?.parameters || !totalSupply) return;
 
     const minVotingPower = (totalSupply * BigInt(proposal.parameters.minVotingPower)) / BigInt(1_000_000);
-    const totalVotes = proposal.tally.yes + proposal.tally.no + proposal.tally.abstain;
+    const totalVotes = proposal.tally.yes + proposal.tally.no;
 
     if (proposal?.active) {
       setStatus({ variant: "info", label: "Active" });
@@ -19,16 +19,10 @@ export const useProposalVariantStatus = (proposal: Proposal) => {
       setStatus({ variant: "primary", label: "Executed" });
     } else if (totalVotes < minVotingPower) {
       setStatus({ variant: "critical", label: "Low turnout" });
-    } else if (proposal.tally.yes > proposal.tally.no && proposal.tally.yes > proposal.tally.abstain) {
+    } else if (proposal.tally.yes > proposal.tally.no) {
       setStatus({ variant: "success", label: "Executable" });
-    } else if (proposal.tally.no > proposal.tally.yes && proposal.tally.no > proposal.tally.abstain) {
+    } else if (proposal.tally.no > proposal.tally.yes) {
       setStatus({ variant: "critical", label: "Defeated" });
-    } else if (proposal.tally.abstain > proposal.tally.no && proposal.tally.abstain > proposal.tally.yes) {
-      if (proposal.tally.yes > proposal.tally.no) {
-        setStatus({ variant: "success", label: "Executable" });
-      } else {
-        setStatus({ variant: "critical", label: "Defeated" });
-      }
     }
   }, [proposal?.tally, proposal?.active, proposal?.executed, proposal?.parameters?.minVotingPower, totalSupply]);
 
@@ -42,7 +36,7 @@ export const useProposalStatus = (proposal: Proposal) => {
     if (!proposal || !proposal?.parameters || !totalSupply) return;
 
     const minVotingPower = (totalSupply * BigInt(proposal.parameters.minVotingPower)) / BigInt(1_000_000);
-    const totalVotes = proposal.tally.yes + proposal.tally.no + proposal.tally.abstain;
+    const totalVotes = proposal.tally.yes + proposal.tally.no;
 
     if (proposal?.active) {
       setStatus(ProposalStatus.ACTIVE);
@@ -50,16 +44,10 @@ export const useProposalStatus = (proposal: Proposal) => {
       setStatus(ProposalStatus.EXECUTED);
     } else if (totalVotes < minVotingPower) {
       setStatus(ProposalStatus.FAILED);
-    } else if (proposal.tally.yes > proposal.tally.no && proposal.tally.yes > proposal.tally.abstain) {
+    } else if (proposal.tally.yes > proposal.tally.no) {
       setStatus(ProposalStatus.EXECUTABLE);
-    } else if (proposal.tally.no > proposal.tally.yes && proposal.tally.no > proposal.tally.abstain) {
+    } else if (proposal.tally.no > proposal.tally.yes) {
       setStatus(ProposalStatus.REJECTED);
-    } else if (proposal.tally.abstain > proposal.tally.no && proposal.tally.abstain > proposal.tally.yes) {
-      if (proposal.tally.yes > proposal.tally.no) {
-        setStatus(ProposalStatus.EXECUTABLE);
-      } else {
-        setStatus(ProposalStatus.REJECTED);
-      }
     }
   }, [proposal?.tally, proposal?.active, proposal?.executed, proposal?.parameters?.minVotingPower, totalSupply]);
 
