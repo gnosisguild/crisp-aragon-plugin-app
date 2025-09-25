@@ -3,7 +3,7 @@ import { CrispVotingAbi } from "../artifacts/CrispVoting";
 import { useEffect } from "react";
 import { PUB_CRISP_VOTING_PLUGIN_ADDRESS } from "@/constants";
 
-export function useCanVote(proposalId: number) {
+export function useCanVote(proposalId: bigint) {
   const { address } = useAccount();
   const { data: blockNumber } = useBlockNumber({ watch: true });
 

@@ -19,7 +19,6 @@ export type ProposalParameters = {
 };
 
 export type Tally = {
-  abstain: bigint;
   yes: bigint;
   no: bigint;
 };

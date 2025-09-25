@@ -54,9 +54,9 @@ export const CrispVotingAbi = [
     type: "function",
     name: "createProposal",
     inputs: [
-      { name: "_metadata", type: "bytes", internalType: "bytes" },
+      { name: "", type: "bytes", internalType: "bytes" },
       {
-        name: "_actions",
+        name: "",
         type: "tuple[]",
         internalType: "struct Action[]",
         components: [
@@ -65,11 +65,11 @@ export const CrispVotingAbi = [
           { name: "data", type: "bytes", internalType: "bytes" },
         ],
       },
-      { name: "_startDate", type: "uint64", internalType: "uint64" },
-      { name: "_endDate", type: "uint64", internalType: "uint64" },
-      { name: "_data", type: "bytes", internalType: "bytes" },
+      { name: "", type: "uint64", internalType: "uint64" },
+      { name: "", type: "uint64", internalType: "uint64" },
+      { name: "", type: "bytes", internalType: "bytes" },
     ],
-    outputs: [{ name: "proposalId", type: "uint256", internalType: "uint256" }],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "nonpayable",
   },
   {
@@ -124,6 +124,63 @@ export const CrispVotingAbi = [
     outputs: [
       {
         name: "proposal_",
+        type: "tuple",
+        internalType: "struct ICrispVoting.Proposal",
+        components: [
+          { name: "executed", type: "bool", internalType: "bool" },
+          {
+            name: "parameters",
+            type: "tuple",
+            internalType: "struct ICrispVoting.ProposalParameters",
+            components: [
+              { name: "startDate", type: "uint64", internalType: "uint64" },
+              { name: "endDate", type: "uint64", internalType: "uint64" },
+              { name: "snapshotBlock", type: "uint256", internalType: "uint256" },
+              { name: "minVotingPower", type: "uint256", internalType: "uint256" },
+            ],
+          },
+          {
+            name: "tally",
+            type: "tuple",
+            internalType: "struct ICrispVoting.TallyResults",
+            components: [
+              { name: "yes", type: "uint256", internalType: "uint256" },
+              { name: "no", type: "uint256", internalType: "uint256" },
+            ],
+          },
+          {
+            name: "actions",
+            type: "tuple[]",
+            internalType: "struct Action[]",
+            components: [
+              { name: "to", type: "address", internalType: "address" },
+              { name: "value", type: "uint256", internalType: "uint256" },
+              { name: "data", type: "bytes", internalType: "bytes" },
+            ],
+          },
+          { name: "allowFailureMap", type: "uint256", internalType: "uint256" },
+          {
+            name: "targetConfig",
+            type: "tuple",
+            internalType: "struct IPlugin.TargetConfig",
+            components: [
+              { name: "target", type: "address", internalType: "address" },
+              { name: "operation", type: "uint8", internalType: "enum IPlugin.Operation" },
+            ],
+          },
+          { name: "e3Id", type: "uint256", internalType: "uint256" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getProposalByIndex",
+    inputs: [{ name: "_index", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      {
+        name: "",
         type: "tuple",
         internalType: "struct ICrispVoting.Proposal",
         components: [
@@ -258,6 +315,13 @@ export const CrispVotingAbi = [
   },
   {
     type: "function",
+    name: "numberOfProposals",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "pluginType",
     inputs: [],
     outputs: [{ name: "", type: "uint8", internalType: "enum IPlugin.PluginType" }],
@@ -267,6 +331,13 @@ export const CrispVotingAbi = [
     type: "function",
     name: "proposalCount",
     inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "proposalCounts",
+    inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },

@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { PUB_CRISP_VOTING_PLUGIN_ADDRESS } from "@/constants";
 import { useTransactionManager } from "@/hooks/useTransactionManager";
 
-export function useProposalVoting(proposalIdx: number) {
+export function useProposalVoting(proposalIdx: bigint) {
   const { reload } = useRouter();
 
   const {

@@ -13,7 +13,7 @@ const DEFAULT_PROPOSAL_TITLE = "(No proposal title)";
 const DEFAULT_PROPOSAL_SUMMARY = "(No proposal summary)";
 
 interface ProposalHeaderProps {
-  proposalIdx: number;
+  proposalIdx: bigint;
   proposal: Proposal;
 }
 

@@ -6,7 +6,7 @@ import { PUB_CHAIN, PUB_CRISP_VOTING_PLUGIN_ADDRESS } from "@/constants";
 import { useTransactionManager } from "@/hooks/useTransactionManager";
 import { DaoAbi } from "@/artifacts/DAO.sol";
 
-export function useProposalExecute(proposalId: number) {
+export function useProposalExecute(proposalId: bigint) {
   const { reload } = useRouter();
   const [isExecuting, setIsExecuting] = useState(false);
 

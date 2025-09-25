@@ -27,7 +27,7 @@ export function useTransactionManager(params: TxLifecycleParams) {
           timeout: 4 * 1000,
         });
       } else {
-        console.error(error);
+        console.error("ERROR", error);
         let description = "The proposal may contain actions with invalid operations";
         if (error?.toString()) {
           const found = error.toString().match(/ror: ActionFailed\(uint256 index\)\n\s+\(([0-9]+)\)/);

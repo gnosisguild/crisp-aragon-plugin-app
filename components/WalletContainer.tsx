@@ -1,4 +1,4 @@
-import { PUB_ALCHEMY_API_KEY, PUB_CHAIN } from "@/constants";
+import { PUB_ALCHEMY_API_KEY, PUB_CHAIN, PUB_WEB3_ENDPOINT } from "@/constants";
 import { formatHexString } from "@/utils/evm";
 import { MemberAvatar } from "@aragon/ods";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
@@ -15,7 +15,7 @@ const config = createConfig({
   client({ chain }) {
     return createClient({
       chain,
-      transport: http(`https://eth-mainnet.g.alchemy.com/v2/${PUB_ALCHEMY_API_KEY}`, { batch: true }),
+      transport: http(PUB_WEB3_ENDPOINT, { batch: true }),
     });
   },
 });
