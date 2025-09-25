@@ -120,7 +120,7 @@ function arrangeProposalData(
 
   return {
     actions: proposalData.actions,
-    active: proposalData.active,
+    active: proposalData.parameters.endDate > BigInt(Math.floor(Date.now() / 1000)),
     executed: proposalData.executed,
     parameters: proposalData.parameters,
     tally: proposalData.tally,

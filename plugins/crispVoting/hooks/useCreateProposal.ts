@@ -40,7 +40,6 @@ export function useCreateProposal() {
   });
 
   const submitProposal = async () => {
-    console.log("submitProposal");
     // Check metadata
     if (!title.trim()) {
       return addAlert("Invalid proposal details", {
@@ -98,10 +97,6 @@ export function useCreateProposal() {
         allowFailureMap,
         [BigInt(new Date().getTime()), BigInt(new Date().getTime() + 1000 * 60 * 60 * 24)],
       ]);
-
-      console.log("chain", PUB_CHAIN);
-
-      console.log(toHex(ipfsPin), actions, startDateTime, endDateTime, data);
 
       createProposalWrite({
         chainId: PUB_CHAIN.id,
