@@ -91,7 +91,7 @@ export default function ProposalCard(props: ProposalInputs) {
           ? Number(proposal.parameters.endDate) * 1000
           : undefined
       }
-      result={result}
+      result={proposalStatus === ProposalStatus.ACTIVE ? undefined : result}
       publisher={{ address: proposal.creator }}
       status={proposalStatus!}
       type={"majorityVoting"}

@@ -4,11 +4,6 @@ import { ComponentProps } from "react";
 
 export const customModulesCopy = {
   ...modulesCopy,
-  majorityVotingResult: {
-    ...modulesCopy.majorityVotingResult,
-    // Overridding the default "Winning option" text, which doesn't apply to vetoing proposals
-    winningOption: "Proposal vetoes",
-  },
 };
 
 const CustomLink: React.FC<ComponentProps<"a">> = ({ href = {}, ...otherProps }) => {
