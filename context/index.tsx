@@ -44,12 +44,7 @@ createWeb3Modal({
 export function RootContextProvider({ children }: { children: ReactNode }) {
   return (
     <WagmiProvider config={config}>
-      <OdsModulesProvider
-        wagmiConfig={config}
-        queryClient={queryClient}
-        coreProviderValues={odsCoreProviderValues}
-        values={{ copy: customModulesCopy }}
-      >
+      <OdsModulesProvider wagmiConfig={config} queryClient={queryClient} coreProviderValues={odsCoreProviderValues}>
         <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
           <AlertProvider>{children}</AlertProvider>
         </PersistQueryClientProvider>

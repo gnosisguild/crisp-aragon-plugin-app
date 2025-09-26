@@ -1,17 +1,14 @@
 import { useProposal } from "../hooks/useProposal";
 import ProposalHeader from "../components/proposal/header";
 import { PleaseWaitSpinner } from "@/components/please-wait";
-import { useProposalVoting } from "../hooks/useProposalVoting";
 import { useProposalExecute } from "../hooks/useProposalExecute";
 import { BodySection } from "@/components/proposal/proposalBodySection";
 import { IBreakdownMajorityVotingResult, ProposalVoting } from "@/components/proposalVoting";
-import type { ITransformedStage, IVote } from "@/utils/types";
-import { ProposalStages } from "@/utils/types";
 import { useProposalStatus } from "../hooks/useProposalVariantStatus";
 import dayjs from "dayjs";
 import { ProposalActions } from "@/components/proposalActions/proposalActions";
 import { CardResources } from "@/components/proposal/cardResources";
-import { Address, formatEther } from "viem";
+import { Address } from "viem";
 import { useToken } from "../hooks/useToken";
 import { ElseIf, If, Then } from "@/components/if";
 import { AlertCard, Button, DialogContent, DialogFooter, DialogHeader, DialogRoot, ProposalStatus } from "@aragon/ods";
@@ -22,17 +19,17 @@ import { AddressText } from "@/components/text/address";
 import Link from "next/link";
 import { useCanVote } from "../hooks/useCanVote";
 import { useState } from "react";
-import { PUB_TOKEN_SYMBOL } from "@/constants";
 import { useProposalVoteList } from "../hooks/useProposalVoteList";
+import { VoteCard } from "../components/vote/voteCard";
+import { useCrispServer } from "../hooks/useCrispServer";
 
 const ZERO = BigInt(0);
-const ABSTAIN_VALUE = 1;
-const VOTE_YES_VALUE = 2;
-const VOTE_NO_VALUE = 3;
+const VOTE_YES_VALUE = 1;
+const VOTE_NO_VALUE = 2;
 
 export default function ProposalDetail({ index: proposalIdx }: { index: bigint }) {
   const { address } = useAccount();
-  const { voteProposal, isConfirming: isConfirmingVote } = useProposalVoting(proposalIdx);
+  const { isLoading, error, postVote } = useCrispServer();
   const { proposal, status: proposalFetchStatus } = useProposal(proposalIdx);
   const canVote = useCanVote(proposalIdx);
   const votes = useProposalVoteList(proposalIdx, proposal);
@@ -63,7 +60,7 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
   } else if (proposalStatus === ProposalStatus.ACTIVE) {
     cta = {
       disabled: !canVote,
-      isLoading: isConfirmingVote,
+      isLoading: isLoading,
       label: "Vote",
       onClick: (option?: number) => (option ? onVote(option) : null),
     };
@@ -72,9 +69,9 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
   const onVote = (voteOption: number | null) => {
     switch (voteOption) {
       case 1:
-        return voteProposal(VOTE_YES_VALUE, true);
+        return postVote(BigInt(VOTE_YES_VALUE));
       case 2:
-        return voteProposal(VOTE_NO_VALUE, true);
+        return postVote(BigInt(VOTE_NO_VALUE));
     }
   };
 
@@ -108,6 +105,14 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
               />
             </If>
             <ProposalActions actions={proposal.actions} />
+            <VoteCard
+              error={canVote === false ? "You cannot vote on this proposal" : undefined}
+              voteStartDate={Number(proposal?.parameters.startDate)}
+              voteOption={0}
+              disabled={canVote === false || proposalStatus !== ProposalStatus.ACTIVE}
+              isLoading={isLoading}
+              onClickVote={onVote}
+            />
           </div>
           <div className="flex flex-col gap-y-6 md:w-[33%]">
             <CardResources resources={proposal.resources} title="Resources" />
@@ -140,9 +145,6 @@ export const VoteOptionDialog: React.FC<{ show: boolean; onClose: (voteOption: n
           </Button>
           <Button variant="primary" size="lg" onClick={() => onClose(VOTE_NO_VALUE)}>
             Vote no
-          </Button>
-          <Button variant="primary" size="lg" onClick={() => onClose(ABSTAIN_VALUE)}>
-            Abstain
           </Button>
           <Button variant="secondary" size="lg" onClick={() => dismiss()}>
             Cancel
