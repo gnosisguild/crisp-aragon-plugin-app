@@ -8,7 +8,6 @@ import { useToken } from "../../hooks/useToken";
 import { useAccount } from "wagmi";
 import { formatEther } from "viem";
 import { PUB_TOKEN_SYMBOL } from "@/constants";
-import { useProposalVoteList } from "../../hooks/useProposalVoteList";
 
 const DEFAULT_PROPOSAL_METADATA_TITLE = "(No proposal title)";
 const DEFAULT_PROPOSAL_METADATA_SUMMARY = "(The metadata of the proposal is not available)";
@@ -18,10 +17,8 @@ type ProposalInputs = {
 };
 
 export default function ProposalCard(props: ProposalInputs) {
-  const { address } = useAccount();
   const { proposal, status: proposalFetchStatus } = useProposal(props.proposalId);
 
-  const votes = useProposalVoteList(props.proposalId, proposal);
   const { symbol: tokenSymbol } = useToken();
   const proposalStatus = useProposalStatus(proposal!);
   const showLoading = getShowProposalLoading(proposal, proposalFetchStatus);
