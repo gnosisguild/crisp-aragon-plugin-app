@@ -3,7 +3,7 @@ import ProposalHeader from "../components/proposal/header";
 import { PleaseWaitSpinner } from "@/components/please-wait";
 import { useProposalExecute } from "../hooks/useProposalExecute";
 import { BodySection } from "@/components/proposal/proposalBodySection";
-import { IBreakdownMajorityVotingResult, ProposalVoting } from "@/components/proposalVoting";
+import { IBreakdownMajorityVotingResult } from "@/components/proposalVoting";
 import { useProposalStatus } from "../hooks/useProposalVariantStatus";
 import dayjs from "dayjs";
 import { ProposalActions } from "@/components/proposalActions/proposalActions";
@@ -19,7 +19,6 @@ import { AddressText } from "@/components/text/address";
 import Link from "next/link";
 import { useCanVote } from "../hooks/useCanVote";
 import { useState } from "react";
-import { useProposalVoteList } from "../hooks/useProposalVoteList";
 import { VoteCard } from "../components/vote/voteCard";
 import { useCrispServer } from "../hooks/useCrispServer";
 
@@ -32,8 +31,6 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
   const { isLoading, error, postVote } = useCrispServer();
   const { proposal, status: proposalFetchStatus } = useProposal(proposalIdx);
   const canVote = useCanVote(proposalIdx);
-  const votes = useProposalVoteList(proposalIdx, proposal);
-  const { symbol: tokenSymbol } = useToken();
   const { balance, delegatesTo } = useTokenVotes(address);
   const [showVotingModal, setShowVotingModal] = useState(false);
   const { executeProposal, canExecute, isConfirming: isConfirmingExecution } = useProposalExecute(proposalIdx);

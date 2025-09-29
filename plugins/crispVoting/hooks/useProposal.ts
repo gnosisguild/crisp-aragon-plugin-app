@@ -52,26 +52,30 @@ export function useProposal(proposalId: bigint, autoRefresh = false) {
   useEffect(() => {
     if (!proposalResult || !publicClient) return;
 
-    publicClient
-      .getLogs({
-        address: PUB_CRISP_VOTING_PLUGIN_ADDRESS,
-        event: ProposalCreatedEvent,
-        args: {
-          proposalId,
-        },
-        fromBlock: proposalRaw.parameters.snapshotBlock,
-        toBlock: proposalRaw.parameters.startDate,
-      })
-      .then((logs) => {
-        if (!logs || !logs.length) throw new Error("No creation logs");
+    try {
+      publicClient
+        .getLogs({
+          address: PUB_CRISP_VOTING_PLUGIN_ADDRESS,
+          event: ProposalCreatedEvent,
+          args: {
+            proposalId,
+          },
+          fromBlock: proposalRaw.parameters.snapshotBlock,
+          toBlock: proposalRaw.parameters.startDate,
+        })
+        .then((logs) => {
+          if (!logs || !logs.length) throw new Error("No creation logs");
 
-        const log: ProposalCreatedLogResponse = logs[0] as any;
-        setProposalCreationEvent(log.args);
-        setMetadataUri(fromHex(log.args.metadata as Hex, "string"));
-      })
-      .catch((err) => {
-        console.error("Could not fetch the proposal details", err);
-      });
+          const log: ProposalCreatedLogResponse = logs[0] as any;
+          setProposalCreationEvent(log.args);
+          setMetadataUri(fromHex(log.args.metadata as Hex, "string"));
+        })
+        .catch((err) => {
+          console.error("Could not fetch the proposal details", err);
+        });
+    } catch (err) {
+      console.error("Could not fetch the proposal details", err);
+    }
   }, [proposalRaw?.tally.yes, proposalRaw?.tally.no, !!publicClient]);
 
   // JSON metadata

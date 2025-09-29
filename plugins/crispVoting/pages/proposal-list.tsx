@@ -24,7 +24,7 @@ export default function Proposals() {
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchProposals = useCallback(async () => {
-    if (!publicClient || !blockNumber) {
+    if (!publicClient || !blockNumber || !PUB_DEPLOYMENT_BLOCK || !ProposalCreatedEvent) {
       return;
     }
 
@@ -36,7 +36,7 @@ export default function Proposals() {
         toBlock: blockNumber,
       });
 
-      if (!logs || !logs.length) {
+      if (!logs || !Array.isArray(logs) || !logs.length) {
         setProposalIds([]);
         return;
       }
