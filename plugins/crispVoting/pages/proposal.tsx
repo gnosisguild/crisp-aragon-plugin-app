@@ -64,11 +64,15 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
   }
 
   const onVote = (voteOption: number | null) => {
+    if (!proposal) {
+      console.log("no proposal");
+      return;
+    }
     switch (voteOption) {
       case 1:
-        return postVote(BigInt(VOTE_YES_VALUE));
+        return postVote(BigInt(VOTE_YES_VALUE), proposal?.e3Id);
       case 2:
-        return postVote(BigInt(VOTE_NO_VALUE));
+        return postVote(BigInt(VOTE_NO_VALUE), proposal?.e3Id);
     }
   };
 
