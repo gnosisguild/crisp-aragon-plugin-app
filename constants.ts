@@ -10,6 +10,9 @@ export const PUB_CRISP_SERVER_URL = (process.env.NEXT_PUBLIC_CRISP_SERVER_URL ??
 
 export const PUB_BRIDGE_ADDRESS = (process.env.NEXT_PUBLIC_BRIDGE_ADDRESS ?? "") as Address;
 
+export const ENCLAVE_ADDRESS = (process.env.NEXT_PUBLIC_ENCLAVE_ADDRESS ?? "") as Address;
+export const CIPHERNODE_REGISTRY_ADDRESS = (process.env.NEXT_PUBLIC_CIPHERNODE_REGISTRY_ADDRESS ?? "") as Address;
+
 export const PUBLIC_SECONDS_PER_BLOCK = Number(process.env.NEXT_PUBLIC_SECONDS_PER_BLOCK ?? 1); // ETH Mainnet block takes ~12s
 export const MINIMUM_START_DELAY_IN_SECONDS = Number(process.env.NEXT_PUBLIC_MINIMUM_START_DELAY_IN_SECONDS ?? 30);
 

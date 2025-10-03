@@ -45,6 +45,7 @@ export type Proposal = {
   summary: string;
   description: string;
   resources: IProposalResource[];
+  e3Id: bigint;
 };
 
 export type ProposalMetadata = {
