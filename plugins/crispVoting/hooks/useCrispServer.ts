@@ -77,7 +77,7 @@ export function useCrispServer(): CrispServerState {
       }
     } catch (error) {
       console.error("Error posting vote", error);
-      setError(error.message);
+      setError(error instanceof Error ? error.message : "Unknown error");
     } finally {
       setIsLoading(false);
     }
