@@ -101,22 +101,8 @@ export function useProposal(proposalId: bigint, autoRefresh = false) {
 }
 
 // Helpers
-
-function decodeProposalResultData(data?: any) {
-  if (!data?.length || data.length < 6) return null;
-
-  return {
-    active: data[0] as boolean,
-    executed: data[1] as boolean,
-    parameters: data[2] as ProposalParameters,
-    tally: data[3] as Tally,
-    actions: data[4] as Array<RawAction>,
-    allowFailureMap: data[5] as bigint,
-  };
-}
-
 function arrangeProposalData(
-  proposalData?: ReturnType<typeof decodeProposalResultData>,
+  proposalData?: Proposal,
   creationEvent?: ProposalCreatedLogResponse["args"],
   metadata?: ProposalMetadata
 ): Proposal | null {
@@ -134,5 +120,6 @@ function arrangeProposalData(
     summary: metadata?.summary || "",
     description: metadata?.description || "",
     resources: metadata?.resources || [],
+    e3Id: proposalData.e3Id,
   };
 }
