@@ -9,8 +9,20 @@ import { PUB_CRISP_VOTING_PLUGIN_ADDRESS, PUB_DEPLOYMENT_BLOCK } from "@/constan
 import { MainSection } from "@/components/layout/main-section";
 import { MissingContentView } from "@/components/MissingContentView";
 import { ProposalCreatedEvent } from "../hooks/useProposal";
+import { RawAction } from "@/utils/types";
+import { Hex } from "viem";
 
 const DEFAULT_PAGE_SIZE = 6;
+
+interface ProposalCreatedLog {
+  proposalId: bigint;
+  creator: string;
+  startDate: bigint;
+  endDate: bigint;
+  metadata: Hex;
+  actions: RawAction[];
+  allowFailureMap: bigint;
+}
 
 export default function Proposals() {
   const { isConnected } = useAccount();
@@ -43,7 +55,7 @@ export default function Proposals() {
 
       const ids = logs
         .map((log) => {
-          const args = log.args;
+          const args = log.args as unknown as ProposalCreatedLog;
           return args?.proposalId;
         })
         .filter((id): id is bigint => id !== undefined)
