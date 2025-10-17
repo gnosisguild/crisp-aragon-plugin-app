@@ -5,4 +5,5 @@ export const iVotesAbi = parseAbi([
   "function balanceOf(address owner) view returns (uint256)",
   "function delegate(address delegatee) external",
   "function delegates(address account) public view returns (address)",
+  "function mint(address to, uint256 amount) external",
 ]);
