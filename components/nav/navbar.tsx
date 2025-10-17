@@ -5,11 +5,18 @@ import Link from "next/link";
 import { useState } from "react";
 import { MobileNavDialog } from "./mobileNavDialog";
 import { NavLink, type INavLink } from "./navLink";
-import { AvatarIcon, IconType } from "@aragon/ods";
-import { PUB_APP_NAME, PUB_PROJECT_LOGO } from "@/constants";
+import { AvatarIcon, Button, IconType, Spinner } from "@aragon/ods";
+import { PUB_APP_NAME, PUB_CHAIN, PUB_PROJECT_LOGO, PUB_TOKEN_ADDRESS } from "@/constants";
+import { useTransactionManager } from "@/hooks/useTransactionManager";
+import { useAccount, useReadContract } from "wagmi";
+import { iVotesAbi } from "@/plugins/crispVoting/artifacts/iVotes";
+import { useAlerts } from "@/context/Alerts";
 
 export const Navbar: React.FC = () => {
   const [showMenu, setShowMenu] = useState(false);
+  const { address } = useAccount();
+
+  const { addAlert } = useAlerts();
 
   const navLinks: INavLink[] = [
     { path: "/", id: "dashboard", name: "Dashboard" /*, icon: IconType.APP_DASHBOARD*/ },
@@ -20,6 +27,41 @@ export const Navbar: React.FC = () => {
       // icon: p.icon,
     })),
   ];
+
+  const { data: balance } = useReadContract({
+    chainId: PUB_CHAIN.id,
+    abi: iVotesAbi,
+    address: PUB_TOKEN_ADDRESS,
+    functionName: "balanceOf",
+    args: [address!],
+  });
+
+  const { writeContract, isConfirming } = useTransactionManager({
+    onSuccessMessage: "Tokens minted",
+    onErrorMessage: "Could not mint test tokens",
+  });
+
+  const mintTestTokens = () => {
+    // you first need to connect your wallet
+    if (!address) {
+      addAlert("Wallet not connected");
+      return;
+    }
+
+    // check balance
+    if (balance && balance > 0n) {
+      addAlert("You already have tokens");
+      return;
+    }
+
+    writeContract({
+      chainId: PUB_CHAIN.id,
+      abi: iVotesAbi,
+      address: PUB_TOKEN_ADDRESS,
+      functionName: "mint",
+      args: [address, BigInt(10e18)],
+    });
+  };
 
   return (
     <>
@@ -43,6 +85,9 @@ export const Navbar: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-x-2">
+              <div className="shrink-0">
+                <Button onClick={mintTestTokens}> {isConfirming ? <Spinner size="sm" /> : "Mint test tokens"} </Button>
+              </div>
               <div className="shrink-0">
                 <WalletContainer />
               </div>
