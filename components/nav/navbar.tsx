@@ -8,12 +8,15 @@ import { NavLink, type INavLink } from "./navLink";
 import { AvatarIcon, Button, IconType, Spinner } from "@aragon/ods";
 import { PUB_APP_NAME, PUB_CHAIN, PUB_PROJECT_LOGO, PUB_TOKEN_ADDRESS } from "@/constants";
 import { useTransactionManager } from "@/hooks/useTransactionManager";
-import { useAccount } from "wagmi";
+import { useAccount, useReadContract } from "wagmi";
 import { iVotesAbi } from "@/plugins/crispVoting/artifacts/iVotes";
+import { useAlerts } from "@/context/Alerts";
 
 export const Navbar: React.FC = () => {
   const [showMenu, setShowMenu] = useState(false);
   const { address } = useAccount();
+
+  const { addAlert } = useAlerts();
 
   const navLinks: INavLink[] = [
     { path: "/", id: "dashboard", name: "Dashboard" /*, icon: IconType.APP_DASHBOARD*/ },
@@ -25,6 +28,14 @@ export const Navbar: React.FC = () => {
     })),
   ];
 
+  const { data: balance } = useReadContract({
+    chainId: PUB_CHAIN.id,
+    abi: iVotesAbi,
+    address: PUB_TOKEN_ADDRESS,
+    functionName: "balanceOf",
+    args: [address!],
+  });
+
   const { writeContract, isConfirming } = useTransactionManager({
     onSuccessMessage: "Tokens minted",
     onErrorMessage: "Could not mint test tokens",
@@ -32,7 +43,16 @@ export const Navbar: React.FC = () => {
 
   const mintTestTokens = () => {
     // you first need to connect your wallet
-    if (!address) return;
+    if (!address) {
+      addAlert("Wallet not connected");
+      return;
+    }
+
+    // check balance
+    if (balance && balance > 0n) {
+      addAlert("You already have tokens");
+      return;
+    }
 
     writeContract({
       chainId: PUB_CHAIN.id,
