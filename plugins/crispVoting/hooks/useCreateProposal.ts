@@ -92,11 +92,13 @@ export function useCreateProposal() {
 
       const endDateTime = Math.floor(new Date(`${endDate}T${endTime ? endTime : "00:00:00"}`).getTime() / 1000);
 
+      const nowInSeconds = Math.floor(Date.now() / 1000);
+      const oneDayInSeconds = 60 * 60 * 24;
+
+      const startWindow: [bigint, bigint] = [BigInt(nowInSeconds), BigInt(nowInSeconds + oneDayInSeconds)];
+
       const allowFailureMap = 0n;
-      const data = encodeAbiParameters(parseAbiParameters("uint256, uint256[2]"), [
-        allowFailureMap,
-        [BigInt(new Date().getTime()), BigInt(new Date().getTime() + 1000 * 60 * 60 * 24)],
-      ]);
+      const data = encodeAbiParameters(parseAbiParameters("uint256, uint256[2]"), [allowFailureMap, startWindow]);
 
       createProposalWrite({
         chainId: PUB_CHAIN.id,
