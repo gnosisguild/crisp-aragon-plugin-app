@@ -9,16 +9,14 @@ import dayjs from "dayjs";
 import { ProposalActions } from "@/components/proposalActions/proposalActions";
 import { CardResources } from "@/components/proposal/cardResources";
 import { Address } from "viem";
-import { useToken } from "../hooks/useToken";
 import { ElseIf, If, Then } from "@/components/if";
-import { AlertCard, Button, DialogContent, DialogFooter, DialogHeader, DialogRoot, ProposalStatus } from "@aragon/ods";
+import { AlertCard, ProposalStatus } from "@aragon/ods";
 import { useAccount } from "wagmi";
 import { useTokenVotes } from "@/hooks/useTokenVotes";
 import { ADDRESS_ZERO } from "@/utils/evm";
 import { AddressText } from "@/components/text/address";
 import Link from "next/link";
 import { useCanVote } from "../hooks/useCanVote";
-import { useState } from "react";
 import { VoteCard } from "../components/vote/voteCard";
 import { useCrispServer } from "../hooks/useCrispServer";
 
@@ -32,7 +30,6 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
   const { proposal, status: proposalFetchStatus } = useProposal(proposalIdx);
   const canVote = useCanVote(proposalIdx);
   const { balance, delegatesTo } = useTokenVotes(address);
-  const [showVotingModal, setShowVotingModal] = useState(false);
   const { executeProposal, canExecute, isConfirming: isConfirmingExecution } = useProposalExecute(proposalIdx);
   const showProposalLoading = getShowProposalLoading(proposal, proposalFetchStatus);
   const proposalStatus = useProposalStatus(proposal!);
@@ -69,9 +66,9 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
       return;
     }
     switch (voteOption) {
-      case 1:
+      case 0:
         return postVote(BigInt(VOTE_YES_VALUE), proposal?.e3Id);
-      case 2:
+      case 1:
         return postVote(BigInt(VOTE_NO_VALUE), proposal?.e3Id);
     }
   };
@@ -109,53 +106,20 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
             <VoteCard
               error={canVote === false ? "You cannot vote on this proposal" : undefined}
               voteStartDate={Number(proposal?.parameters.startDate)}
-              voteOption={0}
               disabled={canVote === false || proposalStatus !== ProposalStatus.ACTIVE}
               isLoading={isLoading}
               onClickVote={onVote}
             />
+            <p>{error}</p>
           </div>
           <div className="flex flex-col gap-y-6 md:w-[33%]">
             <CardResources resources={proposal.resources} title="Resources" />
           </div>
         </div>
       </div>
-      <VoteOptionDialog show={showVotingModal} onClose={onVote} />
     </section>
   );
 }
-
-export const VoteOptionDialog: React.FC<{ show: boolean; onClose: (voteOption: number | null) => void }> = (props) => {
-  const { show, onClose } = props;
-
-  const dismiss = () => {
-    onClose(null);
-  };
-
-  if (!show) {
-    return <></>;
-  }
-
-  return (
-    <DialogRoot open={show} containerClassName="!max-w-[420px]">
-      <DialogHeader title="Select a vote option" onCloseClick={() => dismiss()} onBackClick={() => dismiss()} />
-      <DialogContent className="flex flex-col gap-y-4 md:gap-y-6">
-        <div className="">
-          <Button variant="primary" size="lg" onClick={() => onClose(VOTE_YES_VALUE)}>
-            Vote yes
-          </Button>
-          <Button variant="primary" size="lg" onClick={() => onClose(VOTE_NO_VALUE)}>
-            Vote no
-          </Button>
-          <Button variant="secondary" size="lg" onClick={() => dismiss()}>
-            Cancel
-          </Button>
-        </div>
-      </DialogContent>
-      <DialogFooter />
-    </DialogRoot>
-  );
-};
 
 const NoVotePowerWarning = ({
   delegatingToSomeoneElse,

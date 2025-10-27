@@ -100,3 +100,22 @@ export enum VoteOption {
   No,
   Abstain,
 }
+
+/**
+ * Interface representing the details of a specific round returned by the CRISP server
+ */
+export interface IRoundDetailsResponse {
+  id: string;
+  chain_id: string;
+  enclave_address: string;
+  status: string;
+  vote_count: string;
+  start_time: string;
+  duration: string;
+  expiration: string;
+  start_block: string;
+  committee_public_key: string[];
+  emojis: [string, string];
+  token_address: string;
+  balance_threshold: string;
+}

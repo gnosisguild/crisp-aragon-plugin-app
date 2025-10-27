@@ -1,9 +1,11 @@
 import { CIPHERNODE_REGISTRY_ADDRESS, ENCLAVE_ADDRESS, PUB_CRISP_SERVER_URL } from "@/constants";
 import { useState } from "react";
 import { EnclaveSDK, FheProtocol } from "@enclave-e3/sdk";
-import { hexToBytes, zeroAddress } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
 import crispCircuit from "../artifacts/crispCircuit.json";
+import { IRoundDetailsResponse } from "../utils/types";
+
+export const CRISP_SERVER_STATE_LITE_ROUTE = "state/lite";
 
 /**
  * State of the Crisp server
@@ -12,6 +14,7 @@ interface CrispServerState {
   isLoading: boolean;
   error: string;
   postVote: (voteOption: bigint, e3Id: bigint) => Promise<void>;
+  getE3PublicKey: (e3Id: number) => Promise<Uint8Array>;
 }
 
 /**
@@ -37,6 +40,25 @@ export function useCrispServer(): CrispServerState {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
+  const getE3PublicKey = async (e3Id: number): Promise<Uint8Array> => {
+    console.log("e3Id", e3Id);
+    const response = await fetch(`${PUB_CRISP_SERVER_URL}/${CRISP_SERVER_STATE_LITE_ROUTE}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ round_id: e3Id }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error fetching round data: ${response.statusText}`);
+    }
+
+    const data = (await response.json()) as IRoundDetailsResponse;
+
+    return Uint8Array.from(data.committee_public_key);
+  };
+
   const postVote = async (voteOption: bigint, e3Id: bigint) => {
     setIsLoading(true);
     try {
@@ -54,8 +76,8 @@ export function useCrispServer(): CrispServerState {
         },
       });
 
-      const publicKey = await sdk.getE3PublicKey(e3Id);
-      const data = await sdk.encryptNumberAndGenProof(voteOption, hexToBytes(publicKey), crispCircuit as any);
+      const publicKey = await getE3PublicKey(Number(e3Id));
+      const data = await sdk.encryptNumberAndGenProof(voteOption, Uint8Array.from(publicKey), crispCircuit as any);
 
       // For now we are mocking
       const voteBody: BroadcastVoteRequest = {
@@ -69,6 +91,9 @@ export function useCrispServer(): CrispServerState {
 
       const response = await fetch(`${PUB_CRISP_SERVER_URL}/voting/broadcast`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(voteBody),
       });
 
@@ -87,5 +112,6 @@ export function useCrispServer(): CrispServerState {
     postVote,
     error,
     isLoading,
+    getE3PublicKey,
   };
 }
