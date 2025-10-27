@@ -56,7 +56,7 @@ export function useCrispServer(): CrispServerState {
 
     const data = (await response.json()) as IRoundDetailsResponse;
 
-    return Uint8Array.from(data.committee_public_key);
+    return Uint8Array.from(data.committee_public_key.map((s) => parseInt(s)));
   };
 
   const postVote = async (voteOption: bigint, e3Id: bigint) => {
