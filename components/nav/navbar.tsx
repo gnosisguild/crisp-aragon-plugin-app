@@ -6,7 +6,13 @@ import { useState } from "react";
 import { MobileNavDialog } from "./mobileNavDialog";
 import { NavLink, type INavLink } from "./navLink";
 import { AvatarIcon, Button, IconType, Spinner } from "@aragon/ods";
-import { PUB_APP_NAME, PUB_CHAIN, PUB_PROJECT_LOGO, PUB_TOKEN_ADDRESS } from "@/constants";
+import {
+  PUB_APP_NAME,
+  PUB_CHAIN,
+  PUB_ENCLAVE_FEE_TOKEN_ADDRESS,
+  PUB_PROJECT_LOGO,
+  PUB_TOKEN_ADDRESS,
+} from "@/constants";
 import { useTransactionManager } from "@/hooks/useTransactionManager";
 import { useAccount, useReadContract } from "wagmi";
 import { iVotesAbi } from "@/plugins/crispVoting/artifacts/iVotes";
@@ -28,10 +34,18 @@ export const Navbar: React.FC = () => {
     })),
   ];
 
-  const { data: balance } = useReadContract({
+  const { data: balanceDAO } = useReadContract({
     chainId: PUB_CHAIN.id,
     abi: iVotesAbi,
     address: PUB_TOKEN_ADDRESS,
+    functionName: "balanceOf",
+    args: [address!],
+  });
+
+  const { data: balanceEnclaveFee } = useReadContract({
+    chainId: PUB_CHAIN.id,
+    abi: iVotesAbi,
+    address: PUB_ENCLAVE_FEE_TOKEN_ADDRESS,
     functionName: "balanceOf",
     args: [address!],
   });
@@ -49,18 +63,31 @@ export const Navbar: React.FC = () => {
     }
 
     // check balance
-    if (balance && balance > 0n) {
-      addAlert("You already have tokens");
-      return;
+    if (balanceDAO === 0n) {
+      // mint dao tokens
+      writeContract({
+        chainId: PUB_CHAIN.id,
+        abi: iVotesAbi,
+        address: PUB_TOKEN_ADDRESS,
+        functionName: "mint",
+        args: [address, BigInt(10e18)],
+      });
+    } else {
+      addAlert("You already have DAO tokens");
     }
 
-    writeContract({
-      chainId: PUB_CHAIN.id,
-      abi: iVotesAbi,
-      address: PUB_TOKEN_ADDRESS,
-      functionName: "mint",
-      args: [address, BigInt(10e18)],
-    });
+    if (balanceEnclaveFee === 0n) {
+      // mint enclave fee tokens
+      writeContract({
+        chainId: PUB_CHAIN.id,
+        abi: iVotesAbi,
+        address: PUB_ENCLAVE_FEE_TOKEN_ADDRESS,
+        functionName: "mint",
+        args: [address, BigInt(10000e18)],
+      });
+    } else {
+      addAlert("You already have Enclave Fee tokens");
+    }
   };
 
   return (
