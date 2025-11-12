@@ -2,12 +2,21 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { ProposalMetadata, RawAction } from "@/utils/types";
 import { useAlerts } from "@/context/Alerts";
-import { PUB_APP_NAME, PUB_CHAIN, PUB_CRISP_VOTING_PLUGIN_ADDRESS, PUB_PROJECT_URL } from "@/constants";
+import {
+  PUB_APP_NAME,
+  PUB_CHAIN,
+  PUB_CRISP_VOTING_PLUGIN_ADDRESS,
+  PUB_ENCLAVE_FEE_TOKEN_ADDRESS,
+  PUB_PROJECT_URL,
+  PUB_TOKEN_ADDRESS,
+} from "@/constants";
 import { uploadToPinata } from "@/utils/ipfs";
 import { CrispVotingAbi } from "../artifacts/CrispVoting";
 import { URL_PATTERN } from "@/utils/input-values";
 import { encodeAbiParameters, parseAbiParameters, toHex } from "viem";
 import { useTransactionManager } from "@/hooks/useTransactionManager";
+import { iVotesAbi } from "../artifacts/iVotes";
+import { useAccount, usePublicClient } from "wagmi";
 
 const UrlRegex = new RegExp(URL_PATTERN);
 
@@ -27,7 +36,10 @@ export function useCreateProposal() {
   const [endDate, setEndDate] = useState<string>("");
   const [endTime, setEndTime] = useState<string>("");
 
-  const { writeContract: createProposalWrite, isConfirming } = useTransactionManager({
+  const client = usePublicClient();
+  const { address } = useAccount();
+
+  const { writeContractAsync: createProposalWrite } = useTransactionManager({
     onSuccessMessage: "Proposal created",
     onSuccess() {
       setTimeout(() => {
@@ -36,6 +48,12 @@ export function useCreateProposal() {
       }, 1000 * 2);
     },
     onErrorMessage: "Could not create the proposal",
+    onError: () => setIsCreating(false),
+  });
+
+  const { writeContractAsync: approveTokens } = useTransactionManager({
+    onSuccessMessage: "Tokens approved",
+    onErrorMessage: "Could not approve tokens to the plugin contract",
     onError: () => setIsCreating(false),
   });
 
@@ -80,15 +98,7 @@ export function useCreateProposal() {
 
       const ipfsPin = await uploadToPinata(JSON.stringify(proposalMetadataJsonObject));
 
-      const currentTime = Math.floor(Date.now() / 1000);
       const startDateTime = Math.floor(new Date(`${startDate}T${startTime ? startTime : "00:00:00"}`).getTime() / 1000);
-
-      // if (startDateTime - currentTime < NEXT_MINIMUM_START_DELAY_IN_SECONDS) {
-      //   formErrors = {
-      //     ...formErrors,
-      //     startDate: `The start date must be at least ${NEXT_MINIMUM_START_DELAY_IN_SECONDS} seconds in the future`,
-      //   };
-      // }
 
       const endDateTime = Math.floor(new Date(`${endDate}T${endTime ? endTime : "00:00:00"}`).getTime() / 1000);
 
@@ -100,13 +110,26 @@ export function useCreateProposal() {
       const allowFailureMap = 0n;
       const data = encodeAbiParameters(parseAbiParameters("uint256, uint256[2]"), [allowFailureMap, startWindow]);
 
-      createProposalWrite({
+      // we need to approve tokens first
+      // for now we hardcode the quote of the e3 request as it's a fixed value
+      const quote = 1e6;
+      const tx = await approveTokens({
+        chainId: PUB_CHAIN.id,
+        abi: iVotesAbi,
+        address: PUB_ENCLAVE_FEE_TOKEN_ADDRESS,
+        functionName: "approve",
+        args: [PUB_CRISP_VOTING_PLUGIN_ADDRESS, BigInt(quote)],
+      });
+
+      await client?.waitForTransactionReceipt({ hash: tx });
+
+      // create proposal once we have approved the contract to spend our tokens
+      await createProposalWrite({
         chainId: PUB_CHAIN.id,
         abi: CrispVotingAbi,
         address: PUB_CRISP_VOTING_PLUGIN_ADDRESS,
-        functionName: "createE3Request",
+        functionName: "createProposal",
         args: [toHex(ipfsPin), actions, startDateTime, endDateTime, data],
-        value: 1n,
       });
     } catch (err) {
       console.error("ERR", err);
@@ -115,7 +138,7 @@ export function useCreateProposal() {
   };
 
   return {
-    isCreating: isCreating || isConfirming || status === "pending",
+    isCreating,
     title,
     summary,
     description,
