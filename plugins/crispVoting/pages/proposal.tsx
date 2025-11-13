@@ -19,6 +19,7 @@ import Link from "next/link";
 import { useCanVote } from "../hooks/useCanVote";
 import { VoteCard } from "../components/vote/voteCard";
 import { useCrispServer } from "../hooks/useCrispServer";
+import { VoteResultCard } from "../components/vote/voteResultCard";
 
 const ZERO = BigInt(0);
 const VOTE_YES_VALUE = 1;
@@ -30,35 +31,9 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
   const { proposal, status: proposalFetchStatus } = useProposal(proposalIdx);
   const canVote = useCanVote(proposalIdx);
   const { balance, delegatesTo } = useTokenVotes(address);
-  const { executeProposal, canExecute, isConfirming: isConfirmingExecution } = useProposalExecute(proposalIdx);
+
   const showProposalLoading = getShowProposalLoading(proposal, proposalFetchStatus);
   const proposalStatus = useProposalStatus(proposal!);
-
-  const startDate = dayjs(Number(proposal?.parameters.startDate) * 1000).toString();
-  const endDate = dayjs(Number(proposal?.parameters.endDate) * 1000).toString();
-  const totalVotes = (proposal?.tally.yes || 0n) + (proposal?.tally.no || 0n);
-
-  let cta: IBreakdownMajorityVotingResult["cta"];
-  if (proposal?.executed) {
-    cta = {
-      disabled: true,
-      label: "Executed",
-    };
-  } else if (proposalStatus === ProposalStatus.ACCEPTED) {
-    cta = {
-      disabled: !canExecute || !proposal?.actions.length,
-      isLoading: isConfirmingExecution,
-      label: proposal?.actions.length ? "Execute" : "No actions to execute",
-      onClick: executeProposal,
-    };
-  } else if (proposalStatus === ProposalStatus.ACTIVE) {
-    cta = {
-      disabled: !canVote,
-      isLoading: isLoading,
-      label: "Vote",
-      onClick: (option?: number) => (option ? onVote(option) : null),
-    };
-  }
 
   const onVote = (voteOption: number | null) => {
     if (!proposal) {
@@ -106,13 +81,16 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
             <VoteCard
               error={canVote === false ? "You cannot vote on this proposal" : undefined}
               voteStartDate={Number(proposal?.parameters.startDate)}
+              voteEndDate={Number(proposal?.parameters.endDate)}
               disabled={canVote === false || proposalStatus !== ProposalStatus.ACTIVE}
               isLoading={isLoading}
               onClickVote={onVote}
+              proposalId={proposalIdx}
             />
             <p>{error}</p>
           </div>
           <div className="flex flex-col gap-y-6 md:w-[33%]">
+            {proposalStatus !== ProposalStatus.ACTIVE && <VoteResultCard />}
             <CardResources resources={proposal.resources} title="Resources" />
           </div>
         </div>
