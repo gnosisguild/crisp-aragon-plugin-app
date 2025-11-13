@@ -1,9 +1,19 @@
 import { CIPHERNODE_REGISTRY_ADDRESS, ENCLAVE_ADDRESS, PUB_CRISP_SERVER_URL } from "@/constants";
 import { useState } from "react";
-import { EnclaveSDK, FheProtocol } from "@enclave-e3/sdk";
-import { useAccount, usePublicClient } from "wagmi";
-import crispCircuit from "../artifacts/crispCircuit.json";
+import { useAccount, useSignMessage } from "wagmi";
 import { IRoundDetailsResponse } from "../utils/types";
+import { hexToBytes } from "viem";
+import {
+  encryptVoteAndGenerateCRISPInputs,
+  generateProofWithReturnValue,
+  VotingMode,
+  encodeVote,
+  encryptVote,
+  generateMerkleProof,
+  verifyProof,
+  hashLeaf,
+  generatePublicKey,
+} from "@crisp-e3/sdk";
 
 export const CRISP_SERVER_STATE_LITE_ROUTE = "state/lite";
 
@@ -24,7 +34,7 @@ export interface BroadcastVoteRequest {
   round_id: number;
   enc_vote_bytes: number[];
   proof: number[];
-  public_inputs: string[];
+  public_inputs: number[][];
   address: string;
   proof_sem: number[];
 }
@@ -34,8 +44,9 @@ export interface BroadcastVoteRequest {
  * @returns an error, a loading state and a function to cast votes
  */
 export function useCrispServer(): CrispServerState {
-  const publicClient = usePublicClient();
   const { address } = useAccount();
+
+  const { signMessageAsync } = useSignMessage();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
@@ -67,23 +78,44 @@ export function useCrispServer(): CrispServerState {
         return;
       }
 
-      const sdk = new EnclaveSDK({
-        publicClient: publicClient as any,
-        protocol: FheProtocol.BFV,
-        contracts: {
-          enclave: ENCLAVE_ADDRESS,
-          ciphernodeRegistry: CIPHERNODE_REGISTRY_ADDRESS,
-        },
-      });
+      const message = `Vote for round ${e3Id}`;
+      const signature = await signMessageAsync({ message });
+
+      const vote = voteOption === 0n ? { yes: 0n, no: 1n } : { yes: 1n, no: 0n };
+      const balance = 1n;
 
       const publicKey = await getE3PublicKey(Number(e3Id));
-      const data = await sdk.encryptNumberAndGenProof(voteOption, Uint8Array.from(publicKey), crispCircuit as any);
+
+      const leaf = hashLeaf(address.toLowerCase(), balance.toString());
+      // TODO: get the leaves from the server (pass them from the client).
+      const merkleProof = generateMerkleProof(0n, balance, address.toLowerCase(), [
+        leaf,
+        4720511075913887710172192848636076523165432993226978491435561065722130431597n,
+        14131255645332550266535358189863475289290770471998199141522479556687499890181n,
+      ]);
+
+      const encodedVote = await encodeVote(vote, VotingMode.GOVERNANCE, balance);
+      const encryptedVote = await encryptVote(encodedVote, publicKey);
+
+      const inputs = await encryptVoteAndGenerateCRISPInputs({
+        encodedVote,
+        publicKey,
+        previousCiphertext: encryptedVote,
+        signature,
+        message,
+        merkleData: merkleProof,
+        balance,
+        slotAddress: address.toLowerCase(),
+        isFirstVote: true,
+      });
+
+      const { proof } = await generateProofWithReturnValue(inputs);
 
       // For now we are mocking
       const voteBody: BroadcastVoteRequest = {
-        proof: Array.from(data.proof.proof),
-        enc_vote_bytes: Array.from(data.encryptedVote),
-        public_inputs: Array.from(data.proof.publicInputs),
+        proof: Array.from(proof.proof),
+        enc_vote_bytes: Array.from(encryptedVote),
+        public_inputs: proof.publicInputs.map((h) => Array.from(hexToBytes(h as `0x${string}`))),
         address: address as string,
         proof_sem: Array.from([]),
         round_id: Number(e3Id),
