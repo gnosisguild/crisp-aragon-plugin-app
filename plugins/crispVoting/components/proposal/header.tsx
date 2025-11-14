@@ -6,7 +6,7 @@ import { Else, ElseIf, If, Then } from "@/components/if";
 import { getSimpleRelativeTimeFromDate } from "@/utils/dates";
 import { HeaderSection } from "@/components/layout/header-section";
 import { getTagVariantFromStatus } from "@/utils/ui-variants";
-import { capitalizeFirstLetter } from "@/utils/text";
+import { capitalizeFirstLetter, formatId } from "@/utils/text";
 import dayjs from "dayjs";
 
 const DEFAULT_PROPOSAL_TITLE = "(No proposal title)";
@@ -21,7 +21,7 @@ const ProposalHeader: React.FC<ProposalHeaderProps> = ({ proposalIdx, proposal }
   const proposalStatus = useProposalStatus(proposal);
   const tagVariant = getTagVariantFromStatus(proposalStatus);
 
-  const breadcrumbs: IBreadcrumbsLink[] = [{ label: "Proposals", href: "#/" }, { label: proposalIdx.toString() }];
+  const breadcrumbs: IBreadcrumbsLink[] = [{ label: "Proposals", href: "#/" }, { label: formatId(proposalIdx) }];
   const isEmergency = proposal.parameters.startDate === 0n;
   const endDateIsInThePast = Number(proposal.parameters.endDate) * 1000 < Date.now();
 
