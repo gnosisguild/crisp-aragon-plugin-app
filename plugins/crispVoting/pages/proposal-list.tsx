@@ -50,13 +50,6 @@ export default function Proposals() {
         })
         .catch((err) => {
           console.error("Could not fetch the proposals", err);
-
-          if (!logs || !Array.isArray(logs) || !logs.length) {
-            setProposalIds([]);
-            return;
-          }
-
-          return;
         });
 
       if (!logs || !Array.isArray(logs) || !logs.length) {
