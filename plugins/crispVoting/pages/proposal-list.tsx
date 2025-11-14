@@ -41,12 +41,23 @@ export default function Proposals() {
     }
 
     try {
-      const logs = await publicClient.getLogs({
-        address: PUB_CRISP_VOTING_PLUGIN_ADDRESS,
-        event: ProposalCreatedEvent,
-        fromBlock: BigInt(PUB_DEPLOYMENT_BLOCK),
-        toBlock: blockNumber,
-      });
+      const logs = await publicClient
+        .getLogs({
+          address: PUB_CRISP_VOTING_PLUGIN_ADDRESS,
+          event: ProposalCreatedEvent,
+          fromBlock: BigInt(PUB_DEPLOYMENT_BLOCK),
+          toBlock: blockNumber,
+        })
+        .catch((err) => {
+          console.error("Could not fetch the proposals", err);
+
+          if (!logs || !Array.isArray(logs) || !logs.length) {
+            setProposalIds([]);
+            return;
+          }
+
+          return;
+        });
 
       if (!logs || !Array.isArray(logs) || !logs.length) {
         setProposalIds([]);
