@@ -73,7 +73,7 @@ export const Navbar: React.FC = () => {
         args: [address, BigInt(10e18)],
       });
     } else {
-      addAlert("You already have DAO tokens");
+      addAlert("You already have DAO tokens", { timeout: 1000 });
     }
 
     if (balanceEnclaveFee === 0n) {
@@ -86,7 +86,7 @@ export const Navbar: React.FC = () => {
         args: [address, BigInt(10000e18)],
       });
     } else {
-      addAlert("You already have Enclave Fee tokens");
+      addAlert("You already have Enclave Fee tokens", { timeout: 1000 });
     }
   };
 

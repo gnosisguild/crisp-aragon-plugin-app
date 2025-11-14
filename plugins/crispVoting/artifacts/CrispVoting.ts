@@ -30,7 +30,7 @@ export const CrispVotingAbi = [
   },
   {
     type: "function",
-    name: "createE3Request",
+    name: "createProposal",
     inputs: [
       { name: "_metadata", type: "bytes", internalType: "bytes" },
       {
@@ -48,28 +48,6 @@ export const CrispVotingAbi = [
       { name: "_data", type: "bytes", internalType: "bytes" },
     ],
     outputs: [{ name: "proposalId", type: "uint256", internalType: "uint256" }],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "createProposal",
-    inputs: [
-      { name: "", type: "bytes", internalType: "bytes" },
-      {
-        name: "",
-        type: "tuple[]",
-        internalType: "struct Action[]",
-        components: [
-          { name: "to", type: "address", internalType: "address" },
-          { name: "value", type: "uint256", internalType: "uint256" },
-          { name: "data", type: "bytes", internalType: "bytes" },
-        ],
-      },
-      { name: "", type: "uint64", internalType: "uint64" },
-      { name: "", type: "uint64", internalType: "uint64" },
-      { name: "", type: "bytes", internalType: "bytes" },
-    ],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "nonpayable",
   },
   {
@@ -88,9 +66,26 @@ export const CrispVotingAbi = [
   },
   {
     type: "function",
+    name: "decodeLittleEndianU64",
+    inputs: [
+      { name: "data", type: "bytes", internalType: "bytes" },
+      { name: "offset", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "pure",
+  },
+  {
+    type: "function",
     name: "enclave",
     inputs: [],
     outputs: [{ name: "", type: "address", internalType: "contract IEnclave" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "enclaveFeeToken",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "contract IERC20" }],
     stateMutability: "view",
   },
   {
@@ -176,56 +171,16 @@ export const CrispVotingAbi = [
   },
   {
     type: "function",
-    name: "getProposalByIndex",
-    inputs: [{ name: "_index", type: "uint256", internalType: "uint256" }],
+    name: "getTally",
+    inputs: [{ name: "_proposalId", type: "uint256", internalType: "uint256" }],
     outputs: [
       {
         name: "",
         type: "tuple",
-        internalType: "struct ICrispVoting.Proposal",
+        internalType: "struct ICrispVoting.TallyResults",
         components: [
-          { name: "executed", type: "bool", internalType: "bool" },
-          {
-            name: "parameters",
-            type: "tuple",
-            internalType: "struct ICrispVoting.ProposalParameters",
-            components: [
-              { name: "startDate", type: "uint64", internalType: "uint64" },
-              { name: "endDate", type: "uint64", internalType: "uint64" },
-              { name: "snapshotBlock", type: "uint256", internalType: "uint256" },
-              { name: "minVotingPower", type: "uint256", internalType: "uint256" },
-            ],
-          },
-          {
-            name: "tally",
-            type: "tuple",
-            internalType: "struct ICrispVoting.TallyResults",
-            components: [
-              { name: "yes", type: "uint256", internalType: "uint256" },
-              { name: "no", type: "uint256", internalType: "uint256" },
-            ],
-          },
-          {
-            name: "actions",
-            type: "tuple[]",
-            internalType: "struct Action[]",
-            components: [
-              { name: "to", type: "address", internalType: "address" },
-              { name: "value", type: "uint256", internalType: "uint256" },
-              { name: "data", type: "bytes", internalType: "bytes" },
-            ],
-          },
-          { name: "allowFailureMap", type: "uint256", internalType: "uint256" },
-          {
-            name: "targetConfig",
-            type: "tuple",
-            internalType: "struct IPlugin.TargetConfig",
-            components: [
-              { name: "target", type: "address", internalType: "address" },
-              { name: "operation", type: "uint8", internalType: "enum IPlugin.Operation" },
-            ],
-          },
-          { name: "e3Id", type: "uint256", internalType: "uint256" },
+          { name: "yes", type: "uint256", internalType: "uint256" },
+          { name: "no", type: "uint256", internalType: "uint256" },
         ],
       },
     ],
@@ -281,7 +236,6 @@ export const CrispVotingAbi = [
           { name: "dao", type: "address", internalType: "contract IDAO" },
           { name: "token", type: "address", internalType: "address" },
           { name: "enclave", type: "address", internalType: "address" },
-          { name: "filter", type: "address", internalType: "address" },
           { name: "threshold", type: "uint32[2]", internalType: "uint32[2]" },
           { name: "crispProgramAddress", type: "address", internalType: "address" },
           { name: "crispProgramParams", type: "bytes", internalType: "bytes" },
@@ -315,13 +269,6 @@ export const CrispVotingAbi = [
   },
   {
     type: "function",
-    name: "numberOfProposals",
-    inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "pluginType",
     inputs: [],
     outputs: [{ name: "", type: "uint8", internalType: "enum IPlugin.PluginType" }],
@@ -331,13 +278,6 @@ export const CrispVotingAbi = [
     type: "function",
     name: "proposalCount",
     inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "proposalCounts",
-    inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
@@ -534,6 +474,5 @@ export const CrispVotingAbi = [
     name: "ProposalExecutionForbidden",
     inputs: [{ name: "proposalId", type: "uint256", internalType: "uint256" }],
   },
-  { type: "error", name: "UseCreateE3RequestInstead", inputs: [] },
   { type: "error", name: "ZeroAddress", inputs: [] },
 ];

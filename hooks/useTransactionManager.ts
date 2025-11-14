@@ -13,7 +13,7 @@ export type TxLifecycleParams = {
 
 export function useTransactionManager(params: TxLifecycleParams) {
   const { onSuccess, onError } = params;
-  const { writeContract, data: hash, error, status } = useWriteContract();
+  const { writeContract, writeContractAsync, data: hash, error, status } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
   const { addAlert } = useAlerts();
 
@@ -71,5 +71,5 @@ export function useTransactionManager(params: TxLifecycleParams) {
     }
   }, [status, hash, isConfirming, isConfirmed]);
 
-  return { writeContract, hash, status, isConfirming, isConfirmed };
+  return { writeContract, writeContractAsync, hash, status, isConfirming, isConfirmed };
 }
