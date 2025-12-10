@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { ProposalMetadata, RawAction } from "@/utils/types";
+import type { ProposalMetadata, RawAction } from "@/utils/types";
 import { useAlerts } from "@/context/Alerts";
 import {
   PUB_APP_NAME,
@@ -8,7 +8,6 @@ import {
   PUB_CRISP_VOTING_PLUGIN_ADDRESS,
   PUB_ENCLAVE_FEE_TOKEN_ADDRESS,
   PUB_PROJECT_URL,
-  PUB_TOKEN_ADDRESS,
 } from "@/constants";
 import { uploadToPinata } from "@/utils/ipfs";
 import { CrispVotingAbi } from "../artifacts/CrispVoting";
@@ -16,7 +15,7 @@ import { URL_PATTERN } from "@/utils/input-values";
 import { encodeAbiParameters, parseAbiParameters, toHex } from "viem";
 import { useTransactionManager } from "@/hooks/useTransactionManager";
 import { iVotesAbi } from "../artifacts/iVotes";
-import { useAccount, usePublicClient } from "wagmi";
+import { usePublicClient } from "wagmi";
 
 const UrlRegex = new RegExp(URL_PATTERN);
 
@@ -24,9 +23,9 @@ export function useCreateProposal() {
   const { push } = useRouter();
   const { addAlert } = useAlerts();
   const [isCreating, setIsCreating] = useState(false);
-  const [title, setTitle] = useState<string>("");
-  const [summary, setSummary] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
+  const [title, setTitle] = useState<string>("A new proposal");
+  const [summary, setSummary] = useState<string>("The summary");
+  const [description, setDescription] = useState<string>("The description");
   const [actions, setActions] = useState<RawAction[]>([]);
   const [resources, setResources] = useState<{ name: string; url: string }[]>([
     { name: PUB_APP_NAME, url: PUB_PROJECT_URL },
@@ -37,7 +36,6 @@ export function useCreateProposal() {
   const [endTime, setEndTime] = useState<string>("");
 
   const client = usePublicClient();
-  const { address } = useAccount();
 
   const { writeContractAsync: createProposalWrite } = useTransactionManager({
     onSuccessMessage: "Proposal created",

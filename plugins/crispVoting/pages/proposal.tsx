@@ -1,14 +1,11 @@
 import { useProposal } from "../hooks/useProposal";
 import ProposalHeader from "../components/proposal/header";
 import { PleaseWaitSpinner } from "@/components/please-wait";
-import { useProposalExecute } from "../hooks/useProposalExecute";
 import { BodySection } from "@/components/proposal/proposalBodySection";
-import { IBreakdownMajorityVotingResult } from "@/components/proposalVoting";
 import { useProposalStatus } from "../hooks/useProposalVariantStatus";
-import dayjs from "dayjs";
 import { ProposalActions } from "@/components/proposalActions/proposalActions";
 import { CardResources } from "@/components/proposal/cardResources";
-import { Address } from "viem";
+import type { Address } from "viem";
 import { ElseIf, If, Then } from "@/components/if";
 import { AlertCard, ProposalStatus } from "@aragon/ods";
 import { useAccount } from "wagmi";
