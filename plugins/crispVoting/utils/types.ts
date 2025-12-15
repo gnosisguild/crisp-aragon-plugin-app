@@ -114,7 +114,7 @@ export interface IRoundDetailsResponse {
   duration: string;
   expiration: string;
   start_block: string;
-  committee_public_key: string[];
+  committee_public_key: number[];
   emojis: [string, string];
   token_address: string;
   balance_threshold: string;

@@ -1,10 +1,13 @@
-import { PUB_CRISP_SERVER_URL } from "@/constants";
+import { PUB_CRISP_SERVER_URL, PUB_TOKEN_ADDRESS } from "@/constants";
 import { useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
 import type { IRoundDetailsResponse } from "../utils/types";
-import { encodeSolidityProof, hashLeaf, SIGNATURE_MESSAGE, generateVoteProof } from "@crisp-e3/sdk";
+import { encodeSolidityProof, SIGNATURE_MESSAGE, SIGNATURE_MESSAGE_HASH, generateVoteProof } from "@crisp-e3/sdk";
+import { iVotesAbi } from "../artifacts/iVotes";
+import { publicClient } from "../utils/client";
 
 export const CRISP_SERVER_STATE_LITE_ROUTE = "state/lite";
+export const CRISP_SERVER_STATE_TOKEN_HOLDERS = "state/token-holders";
 
 /**
  * State of the Crisp server
@@ -13,7 +16,7 @@ interface CrispServerState {
   isLoading: boolean;
   error: string;
   postVote: (voteOption: bigint, e3Id: bigint) => Promise<void>;
-  getE3PublicKey: (e3Id: number) => Promise<Uint8Array>;
+  getTokenHoldersHashes: (e3Id: number) => Promise<bigint[]>;
 }
 
 /**
@@ -38,7 +41,7 @@ export function useCrispServer(): CrispServerState {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
-  const getE3PublicKey = async (e3Id: number): Promise<Uint8Array> => {
+  const getRoundState = async (e3Id: number): Promise<IRoundDetailsResponse> => {
     const response = await fetch(`${PUB_CRISP_SERVER_URL}/${CRISP_SERVER_STATE_LITE_ROUTE}`, {
       method: "POST",
       headers: {
@@ -53,7 +56,25 @@ export function useCrispServer(): CrispServerState {
 
     const data = (await response.json()) as IRoundDetailsResponse;
 
-    return Uint8Array.from(data.committee_public_key.map((s) => parseInt(s)));
+    return data;
+  };
+
+  const getTokenHoldersHashes = async (e3Id: number): Promise<bigint[]> => {
+    const response = await fetch(`${PUB_CRISP_SERVER_URL}/${CRISP_SERVER_STATE_TOKEN_HOLDERS}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ round_id: e3Id }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error fetching token holder hashes: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    return data.map((s: string) => BigInt(`0x${s}`));
   };
 
   const postVote = async (voteOption: bigint, e3Id: bigint) => {
@@ -64,26 +85,53 @@ export function useCrispServer(): CrispServerState {
         return;
       }
 
+      // get the merkle leaves
+      const merkleLeaves = await getTokenHoldersHashes(Number(e3Id));
+
       const signature = await signMessageAsync({ message: SIGNATURE_MESSAGE });
 
-      const balance = 1n;
-      const vote = voteOption === 0n ? { yes: 0n, no: balance } : { yes: balance, no: 0n };
+      console.log("e3Id", e3Id);
+      const roundState = await getRoundState(Number(e3Id));
+      const blockNumber = BigInt(roundState.start_block) - 1n;
 
-      const publicKey = await getE3PublicKey(Number(e3Id));
+      console.log("got round state");
+      console.log("roundState", roundState);
 
-      // TODO: get the leaves from the server (pass them from the client).
-      const merkleLeaves = [
-        hashLeaf(address, balance),
-        4720511075913887710172192848636076523165432993226978491435561065722130431597n,
-        14131255645332550266535358189863475289290770471998199141522479556687499890181n,
-      ];
+      const balance = await publicClient.readContract({
+        address: PUB_TOKEN_ADDRESS,
+        abi: iVotesAbi,
+        functionName: "getPastVotes",
+        args: [address as `0x${string}`, blockNumber],
+      });
+
+      const decimals = await publicClient.readContract({
+        address: PUB_TOKEN_ADDRESS,
+        abi: iVotesAbi,
+        functionName: "decimals",
+      });
+
+      const adjustedBalance = balance / 10n ** BigInt(decimals / 2);
+
+      const vote = voteOption === 0n ? { yes: 0n, no: adjustedBalance } : { yes: adjustedBalance, no: 0n };
+
+      // const publicKey = await getE3PublicKey(Number(e3Id));
+
+      console.log({
+        merkleLeaves,
+        publicKey: new Uint8Array(roundState.committee_public_key),
+        balance: adjustedBalance,
+        vote,
+        signature,
+        messageHash: SIGNATURE_MESSAGE_HASH,
+      });
 
       const proof = await generateVoteProof({
         merkleLeaves,
-        publicKey,
-        balance,
+        publicKey: new Uint8Array(roundState.committee_public_key),
+        balance: adjustedBalance,
         vote,
         signature,
+        messageHash: SIGNATURE_MESSAGE_HASH,
       });
 
       const encodedProof = encodeSolidityProof(proof);
@@ -119,6 +167,6 @@ export function useCrispServer(): CrispServerState {
     postVote,
     error,
     isLoading,
-    getE3PublicKey,
+    getTokenHoldersHashes,
   };
 }

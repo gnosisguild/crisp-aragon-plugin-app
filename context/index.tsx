@@ -9,7 +9,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { OdsModulesProvider } from "@aragon/ods";
-import { customModulesCopy, odsCoreProviderValues } from "@/components/ods-customizations";
+import { odsCoreProviderValues } from "@/components/ods-customizations";
 
 const queryClient = new QueryClient({
   defaultOptions: {

@@ -79,7 +79,11 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
               error={canVote === false ? "You cannot vote on this proposal" : undefined}
               voteStartDate={Number(proposal?.parameters.startDate)}
               voteEndDate={Number(proposal?.parameters.endDate)}
-              disabled={canVote === false || proposalStatus !== ProposalStatus.ACTIVE}
+              disabled={
+                canVote === false ||
+                proposalStatus !== ProposalStatus.ACTIVE ||
+                Number(proposal?.parameters.startDate) > Math.round(Date.now() / 1000)
+              }
               isLoading={isLoading}
               onClickVote={onVote}
               proposalId={proposalIdx}

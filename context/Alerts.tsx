@@ -50,7 +50,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       type: alertOptions?.type ?? "info",
     };
     if (alertOptions?.txHash && client) {
-      newAlert.explorerLink = client.chain.blockExplorers?.default.url + "/tx/" + alertOptions.txHash;
+      newAlert.explorerLink = `${client.chain.blockExplorers?.default.url}/tx/${alertOptions.txHash}`;
     }
     const timeout = alertOptions?.timeout ?? DEFAULT_ALERT_TIMEOUT;
     newAlert.dismissTimeout = setTimeout(() => removeAlert(newAlert.id), timeout);
