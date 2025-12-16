@@ -5,6 +5,7 @@ import type { IRoundDetailsResponse } from "../utils/types";
 import { encodeSolidityProof, SIGNATURE_MESSAGE, SIGNATURE_MESSAGE_HASH, generateVoteProof } from "@crisp-e3/sdk";
 import { iVotesAbi } from "../artifacts/iVotes";
 import { publicClient } from "../utils/client";
+import { useAlerts } from "@/context/Alerts";
 
 export const CRISP_SERVER_STATE_LITE_ROUTE = "state/lite";
 export const CRISP_SERVER_STATE_TOKEN_HOLDERS = "state/token-holders";
@@ -35,6 +36,7 @@ export interface BroadcastVoteRequest {
  */
 export function useCrispServer(): CrispServerState {
   const { address } = useAccount();
+  const { addAlert } = useAlerts();
 
   const { signMessageAsync } = useSignMessage();
 
@@ -159,6 +161,8 @@ export function useCrispServer(): CrispServerState {
       if (response.status !== 200) {
         setError("Failed to post vote");
       }
+
+      addAlert("Vote successfully posted", { timeout: 3000, type: "success" });
     } catch (error) {
       console.error("Error posting vote", error);
       setError(error instanceof Error ? error.message : "Unknown error");
