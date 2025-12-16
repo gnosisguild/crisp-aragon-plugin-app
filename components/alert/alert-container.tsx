@@ -13,9 +13,10 @@ const AlertContainer: FC = () => {
           className="mb-4 drop-shadow-lg"
           key={alert.id}
           message={alert.message}
-          description={resolveDescription(alert)}
           variant={resolveVariant(alert.type)}
-        />
+        >
+          {resolveDescription(alert)}
+        </AlertCard>
       ))}
     </div>
   );

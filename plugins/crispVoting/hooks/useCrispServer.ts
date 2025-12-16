@@ -54,7 +54,10 @@ export function useCrispServer(): CrispServerState {
       throw new Error(`Error fetching round data: ${response.statusText}`);
     }
 
-    const data = (await response.json()) as IRoundDetailsResponse;
+    const d = await response.json();
+    console.log("d", d);
+
+    const data = d as IRoundDetailsResponse;
 
     return data;
   };
@@ -96,6 +99,7 @@ export function useCrispServer(): CrispServerState {
 
       console.log("got round state");
       console.log("roundState", roundState);
+      console.log("uin8", new Uint8Array(roundState.committee_public_key));
 
       const balance = await publicClient.readContract({
         address: PUB_TOKEN_ADDRESS,

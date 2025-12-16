@@ -52,18 +52,7 @@ export function useProposal(proposalId: bigint, autoRefresh = false) {
   useEffect(() => {
     if (!proposalResult || !publicClient) return;
 
-    console.log("proposalRaw", proposalRaw);
-
     try {
-      console.log({
-        address: PUB_CRISP_VOTING_PLUGIN_ADDRESS,
-        event: ProposalCreatedEvent,
-        args: {
-          proposalId,
-        },
-        fromBlock: proposalRaw.parameters.snapshotBlock,
-        toBlock: proposalRaw.parameters.startDate,
-      });
       publicClient
         .getLogs({
           address: PUB_CRISP_VOTING_PLUGIN_ADDRESS,
@@ -72,7 +61,6 @@ export function useProposal(proposalId: bigint, autoRefresh = false) {
             proposalId,
           },
           fromBlock: proposalRaw.parameters.snapshotBlock,
-          // toBlock: proposalRaw.parameters.startDate,
         })
         .then((logs) => {
           if (!logs || !logs.length) throw new Error("No creation logs");
