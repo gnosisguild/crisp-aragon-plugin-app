@@ -20,7 +20,6 @@ export const Publisher: React.FC<IPublisherProps> = (props) => {
         {showParsedPublisher &&
           publisher.map(({ address, name, link }, index) => {
             const label = name ?? formatHexString(address);
-
             return (
               <span key={label} className="truncate">
                 {link != null && <Link href={link}>{label}</Link>}

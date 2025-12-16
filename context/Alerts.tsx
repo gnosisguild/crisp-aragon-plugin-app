@@ -44,13 +44,13 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     const newAlert: IAlert = {
-      id: Date.now(),
+      id: Math.floor(performance.now() * 10000),
       message,
       description: alertOptions?.description,
       type: alertOptions?.type ?? "info",
     };
     if (alertOptions?.txHash && client) {
-      newAlert.explorerLink = client.chain.blockExplorers?.default.url + "/tx/" + alertOptions.txHash;
+      newAlert.explorerLink = `${client.chain.blockExplorers?.default.url}/tx/${alertOptions.txHash}`;
     }
     const timeout = alertOptions?.timeout ?? DEFAULT_ALERT_TIMEOUT;
     newAlert.dismissTimeout = setTimeout(() => removeAlert(newAlert.id), timeout);

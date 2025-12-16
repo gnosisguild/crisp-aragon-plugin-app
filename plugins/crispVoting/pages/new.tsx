@@ -196,7 +196,6 @@ export default function Create() {
                 variant="default"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                // disabled={isDisabled}
               />
               <InputTime
                 wrapperClassName={inputWrapperClassName}
@@ -204,7 +203,6 @@ export default function Create() {
                 variant="default"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                // disabled={isDisabled}
               />
             </div>
             <div className="flex flex-1 flex-col">
@@ -215,7 +213,6 @@ export default function Create() {
                 variant="default"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                // disabled={isDisabled}
               />
               <InputTime
                 wrapperClassName={inputWrapperClassName}
@@ -223,7 +220,6 @@ export default function Create() {
                 variant="default"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                // disabled={isDisabled}
               />
             </div>
           </div>

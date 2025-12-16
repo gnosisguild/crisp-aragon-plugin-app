@@ -1,4 +1,4 @@
-import { useAccount, useBlockNumber, usePublicClient } from "wagmi";
+import { useAccount, useBlockNumber } from "wagmi";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import ProposalCard from "../components/proposal";
 import { Button, DataList, IconType, ProposalDataListItemSkeleton, type DataListState } from "@aragon/ods";
@@ -11,6 +11,7 @@ import { MissingContentView } from "@/components/MissingContentView";
 import { ProposalCreatedEvent } from "../hooks/useProposal";
 import { RawAction } from "@/utils/types";
 import { Hex } from "viem";
+import { publicClient } from "../utils/client";
 
 const DEFAULT_PAGE_SIZE = 6;
 
@@ -28,8 +29,6 @@ export default function Proposals() {
   const { isConnected } = useAccount();
   const canCreate = useCanCreateProposal();
   const { data: blockNumber } = useBlockNumber({ watch: true });
-
-  const publicClient = usePublicClient();
 
   const [proposalIds, setProposalIds] = useState<bigint[]>([]);
   const [error, setError] = useState<string | null>(null);

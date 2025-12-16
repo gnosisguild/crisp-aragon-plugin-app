@@ -1,14 +1,11 @@
 import { useProposal } from "../hooks/useProposal";
 import ProposalHeader from "../components/proposal/header";
 import { PleaseWaitSpinner } from "@/components/please-wait";
-import { useProposalExecute } from "../hooks/useProposalExecute";
 import { BodySection } from "@/components/proposal/proposalBodySection";
-import { IBreakdownMajorityVotingResult } from "@/components/proposalVoting";
 import { useProposalStatus } from "../hooks/useProposalVariantStatus";
-import dayjs from "dayjs";
 import { ProposalActions } from "@/components/proposalActions/proposalActions";
 import { CardResources } from "@/components/proposal/cardResources";
-import { Address } from "viem";
+import type { Address } from "viem";
 import { ElseIf, If, Then } from "@/components/if";
 import { AlertCard, ProposalStatus } from "@aragon/ods";
 import { useAccount } from "wagmi";
@@ -82,7 +79,11 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
               error={canVote === false ? "You cannot vote on this proposal" : undefined}
               voteStartDate={Number(proposal?.parameters.startDate)}
               voteEndDate={Number(proposal?.parameters.endDate)}
-              disabled={canVote === false || proposalStatus !== ProposalStatus.ACTIVE}
+              disabled={
+                canVote === false ||
+                proposalStatus !== ProposalStatus.ACTIVE ||
+                Number(proposal?.parameters.startDate) > Math.round(Date.now() / 1000)
+              }
               isLoading={isLoading}
               onClickVote={onVote}
               proposalId={proposalIdx}
