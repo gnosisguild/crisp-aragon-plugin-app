@@ -91,7 +91,14 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
             <p>{error}</p>
           </div>
           <div className="flex flex-col gap-y-6 md:w-[33%]">
-            {proposalStatus !== ProposalStatus.ACTIVE && <VoteResultCard />}
+            {proposalStatus !== ProposalStatus.ACTIVE && (
+              <VoteResultCard
+                results={[
+                  { option: "yes", value: String(proposal.tally.yes || ZERO) },
+                  { option: "no", value: String(proposal.tally.no || ZERO) },
+                ]}
+              />
+            )}
             <CardResources resources={proposal.resources} title="Resources" />
           </div>
         </div>

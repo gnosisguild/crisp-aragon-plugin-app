@@ -42,7 +42,19 @@ export function useProposal(proposalId: bigint, autoRefresh = false) {
     args: [proposalId],
   });
 
+  const { data: tallyResult, refetch: refetchTally } = useReadContract({
+    address: PUB_CRISP_VOTING_PLUGIN_ADDRESS,
+    abi: CrispVotingAbi,
+    functionName: "getTally",
+    args: [proposalId],
+  });
+
   const proposalRaw = proposalResult as Proposal;
+  const tally = tallyResult as Tally;
+
+  useEffect(() => {
+    if (autoRefresh) refetchTally();
+  }, [blockNumber]);
 
   useEffect(() => {
     if (autoRefresh) proposalRefetch();
@@ -84,7 +96,7 @@ export function useProposal(proposalId: bigint, autoRefresh = false) {
     error: metadataError,
   } = useMetadata<ProposalMetadata>(metadataUri);
 
-  const proposal = arrangeProposalData(proposalRaw, proposalCreationEvent, metadataContent);
+  const proposal = arrangeProposalData(proposalRaw, proposalCreationEvent, metadataContent, tally);
 
   return {
     proposal,
@@ -103,7 +115,8 @@ export function useProposal(proposalId: bigint, autoRefresh = false) {
 function arrangeProposalData(
   proposalData?: Proposal,
   creationEvent?: ProposalCreatedLogResponse["args"],
-  metadata?: ProposalMetadata
+  metadata?: ProposalMetadata,
+  tally?: Tally
 ): Proposal | null {
   if (!proposalData) return null;
 
@@ -112,7 +125,7 @@ function arrangeProposalData(
     active: proposalData.parameters.endDate > BigInt(Math.floor(Date.now() / 1000)),
     executed: proposalData.executed,
     parameters: proposalData.parameters,
-    tally: proposalData.tally,
+    tally: proposalData.tally || tally,
     allowFailureMap: proposalData.allowFailureMap,
     creator: creationEvent?.creator || "",
     title: metadata?.title || "",
