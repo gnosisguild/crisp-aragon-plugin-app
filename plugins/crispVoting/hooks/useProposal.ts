@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
-import { useBlockNumber, usePublicClient, useReadContract } from "wagmi";
-import { AbiEvent, Hex, fromHex, getAbiItem } from "viem";
+import { useBlockNumber, useReadContract } from "wagmi";
 import { CrispVotingAbi } from "../artifacts/CrispVoting";
-import { RawAction, ProposalMetadata } from "@/utils/types";
-import { Proposal, ProposalParameters, Tally } from "../utils/types";
 import { PUB_CRISP_VOTING_PLUGIN_ADDRESS } from "@/constants";
 import { useMetadata } from "@/hooks/useMetadata";
+import { getAbiItem, fromHex } from "viem";
 import { publicClient } from "../utils/client";
+
+import type { RawAction, ProposalMetadata } from "@/utils/types";
+import type { Proposal } from "../utils/types";
+import type { AbiEvent, Hex } from "viem";
 
 type ProposalCreatedLogResponse = {
   args: {
@@ -58,7 +60,7 @@ export function useProposal(proposalId: bigint, autoRefresh = false) {
 
   useEffect(() => {
     if (autoRefresh) proposalRefetch();
-  }, [blockNumber]);
+  }, [blockNumber, autoRefresh, proposalRefetch]);
 
   // Creation event
   useEffect(() => {
@@ -87,7 +89,14 @@ export function useProposal(proposalId: bigint, autoRefresh = false) {
     } catch (err) {
       console.error("Could not fetch the proposal details", err);
     }
-  }, [proposalRaw?.tally.yes, proposalRaw?.tally.no, !!publicClient]);
+  }, [
+    proposalRaw?.tally.yes,
+    proposalRaw?.tally.no,
+    !!publicClient,
+    proposalId,
+    proposalRaw?.parameters.snapshotBlock,
+    proposalResult,
+  ]);
 
   // JSON metadata
   const {
@@ -127,11 +136,11 @@ function arrangeProposalData(
     parameters: proposalData.parameters,
     tally: proposalData.tally || tally,
     allowFailureMap: proposalData.allowFailureMap,
-    creator: creationEvent?.creator || "",
-    title: metadata?.title || "",
-    summary: metadata?.summary || "",
-    description: metadata?.description || "",
-    resources: metadata?.resources || [],
+    creator: creationEvent?.creator ?? "",
+    title: metadata?.title ?? "",
+    summary: metadata?.summary ?? "",
+    description: metadata?.description ?? "",
+    resources: metadata?.resources ?? [],
     e3Id: proposalData.e3Id,
   };
 }

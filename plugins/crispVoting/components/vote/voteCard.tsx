@@ -35,8 +35,8 @@ export const VoteCard = ({
       </div>
       <div className="flex flex-col justify-between gap-y-2">
         <p>
-          Submit your vote anonymously <b>using any wallet</b>. Results will be tallied by the Enclave network after the
-          voting period ends.
+          Submit your vote to the CRISP server. Results will be tallied by the Enclave network after the voting period
+          ends.
         </p>
         {voteStartDate &&
           voteStartDate > Math.round(Date.now() / 1000) &&
