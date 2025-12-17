@@ -19,8 +19,8 @@ import { useCrispServer } from "../hooks/useCrispServer";
 import { VoteResultCard } from "../components/vote/voteResultCard";
 
 const ZERO = BigInt(0);
-const VOTE_YES_VALUE = 1;
-const VOTE_NO_VALUE = 2;
+const VOTE_YES_VALUE = 0;
+const VOTE_NO_VALUE = 1;
 
 export default function ProposalDetail({ index: proposalIdx }: { index: bigint }) {
   const { address } = useAccount();
@@ -34,9 +34,9 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
 
   const onVote = (voteOption: number | null) => {
     if (!proposal) {
-      console.log("no proposal");
       return;
     }
+
     switch (voteOption) {
       case 0:
         return postVote(BigInt(VOTE_YES_VALUE), proposal?.e3Id);
@@ -135,7 +135,7 @@ const NoVotePowerWarning = ({
             </ElseIf>
           </If>
           &nbsp;make sure that{" "}
-          <Link href={"/plugins/members/#/delegates/" + address} className="!text-sm text-primary-400 hover:underline">
+          <Link href={`/plugins/members/#/delegates/${address}`} className="!text-sm text-primary-400 hover:underline">
             your voting power is self delegated
           </Link>
           .

@@ -27,7 +27,6 @@ export interface BroadcastVoteRequest {
   round_id: number;
   encoded_proof: string;
   address: string;
-  proof_sem: number[];
 }
 
 /**
@@ -56,10 +55,7 @@ export function useCrispServer(): CrispServerState {
       throw new Error(`Error fetching round data: ${response.statusText}`);
     }
 
-    const d = await response.json();
-    console.log("d", d);
-
-    const data = d as IRoundDetailsResponse;
+    const data = (await response.json()) as IRoundDetailsResponse;
 
     return data;
   };
@@ -95,13 +91,8 @@ export function useCrispServer(): CrispServerState {
 
       const signature = await signMessageAsync({ message: SIGNATURE_MESSAGE });
 
-      console.log("e3Id", e3Id);
       const roundState = await getRoundState(Number(e3Id));
       const blockNumber = BigInt(roundState.start_block) - 1n;
-
-      console.log("got round state");
-      console.log("roundState", roundState);
-      console.log("uin8", new Uint8Array(roundState.committee_public_key));
 
       const balance = await publicClient.readContract({
         address: PUB_TOKEN_ADDRESS,
@@ -118,18 +109,9 @@ export function useCrispServer(): CrispServerState {
 
       const adjustedBalance = balance / 10n ** BigInt(decimals / 2);
 
-      const vote = voteOption === 0n ? { yes: 0n, no: adjustedBalance } : { yes: adjustedBalance, no: 0n };
+      console.log("Adjusted balance:", adjustedBalance);
 
-      // const publicKey = await getE3PublicKey(Number(e3Id));
-
-      console.log({
-        merkleLeaves,
-        publicKey: new Uint8Array(roundState.committee_public_key),
-        balance: adjustedBalance,
-        vote,
-        signature,
-        messageHash: SIGNATURE_MESSAGE_HASH,
-      });
+      const vote = voteOption === 0n ? { yes: adjustedBalance, no: 0n } : { yes: 0n, no: adjustedBalance };
 
       const proof = await generateVoteProof({
         merkleLeaves,
@@ -146,7 +128,6 @@ export function useCrispServer(): CrispServerState {
       const voteBody: BroadcastVoteRequest = {
         encoded_proof: encodedProof,
         address: address as string,
-        proof_sem: Array.from([]),
         round_id: Number(e3Id),
       };
 
@@ -163,8 +144,8 @@ export function useCrispServer(): CrispServerState {
       }
 
       addAlert("Vote successfully posted", { timeout: 3000, type: "success" });
+      setError("");
     } catch (error) {
-      console.error("Error posting vote", error);
       setError(error instanceof Error ? error.message : "Unknown error");
     } finally {
       setIsLoading(false);
