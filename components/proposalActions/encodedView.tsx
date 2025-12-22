@@ -1,7 +1,7 @@
 import { PUB_CHAIN } from "@/constants";
 import { capitalizeFirstLetter } from "@/utils/text";
 import { type RawAction } from "@/utils/types";
-import { InputText, NumberFormat, formatterUtils } from "@aragon/ods";
+import { InputText } from "@aragon/ods";
 import { formatEther } from "viem";
 
 type IEncodedViewProps = {
@@ -24,7 +24,7 @@ function getEncodedArgs(action: RawAction) {
       { title: "To", value: action.to },
       {
         title: "Value",
-        value: `${parseFloat(formatEther(action.value ?? BigInt(0))).toFixed(6)} ${PUB_CHAIN.nativeCurrency.symbol}`,
+        value: `${parseFloat(formatEther(action.value ?? BigInt(0))).toFixed(8)} ${PUB_CHAIN.nativeCurrency.symbol}`,
       },
     ];
   }

@@ -36,7 +36,7 @@ export const PUB_APP_NAME = "Aragon - CRISP Voting on Enclave";
 export const PUB_APP_DESCRIPTION = "DAO Voting on Enclave using CRISP";
 export const PUB_TOKEN_SYMBOL = "DVT";
 
-export const PUB_PROJECT_LOGO = "/logo.png";
+export const PUB_PROJECT_LOGO = "/enclave-banner.svg";
 export const PUB_PROJECT_URL = process.env.NEXT_PUBLIC_PROJECT_URL ?? "https://aragon.org/";
 export const PUB_WALLET_ICON = "https://avatars.githubusercontent.com/u/37784886";
 export const PUB_BLOG_URL = "https://aragon.org/";
