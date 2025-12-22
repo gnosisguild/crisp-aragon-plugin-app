@@ -112,16 +112,6 @@ export function useCrispServer(): CrispServerState {
 
       const vote = voteOption === 0n ? { yes: adjustedBalance, no: 0n } : { yes: 0n, no: adjustedBalance };
 
-      console.log({
-        merkleLeaves,
-        publicKey: new Uint8Array(roundState.committee_public_key),
-        balance: adjustedBalance,
-        vote,
-        signature,
-        messageHash: SIGNATURE_MESSAGE_HASH,
-        e3Id: Number(e3Id),
-        slotAddress: address as string,
-      });
       const proof = await crispSdk.generateVoteProof({
         merkleLeaves,
         publicKey: new Uint8Array(roundState.committee_public_key),
@@ -132,8 +122,6 @@ export function useCrispServer(): CrispServerState {
         e3Id: Number(e3Id),
         slotAddress: address as string,
       });
-
-      console.log("proof", proof);
 
       const encodedProof = encodeSolidityProof(proof);
 
