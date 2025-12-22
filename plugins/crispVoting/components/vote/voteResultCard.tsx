@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import classNames from "classnames";
-import { Card } from "@aragon/ods";
+import { Button, Card } from "@aragon/ods";
+import { useProposalExecute } from "../../hooks/useProposalExecute";
 
 type WinnerType = "yes" | "no" | "tie";
 
@@ -13,16 +14,18 @@ interface IResult {
 
 interface VoteResultCardProps {
   results?: IResult[];
+  proposalId: bigint;
 }
 
-export const VoteResultCard = ({ results }: VoteResultCardProps) => {
+export const VoteResultCard = ({ results, proposalId }: VoteResultCardProps) => {
+  const { executeProposal, canExecute, isConfirming: isConfirmingExecution } = useProposalExecute(proposalId);
+
   const [isVisible, setIsVisible] = useState(false);
 
   const yes = results ? Number(results[0].value) : 0;
   const no = results ? Number(results[1].value) : 0;
-  const abstain = results ? Number(results[2].value) : 0;
 
-  const total = yes + no + abstain;
+  const total = yes + no;
 
   const yesPercentage = total > 0 ? (yes / total) * 100 : 0;
   const noPercentage = total > 0 ? (no / total) * 100 : 0;
@@ -95,6 +98,7 @@ export const VoteResultCard = ({ results }: VoteResultCardProps) => {
                   className={classNames(`text-lg`, textClass(winner))}
                   style={{
                     fontWeight: 700,
+                    color: winner === "tie" ? "#EAB308" : winner === "yes" ? "#10B981" : "#EF4444",
                   }}
                 >
                   {config?.percentage.toFixed(0)}%{" "}
@@ -111,7 +115,7 @@ export const VoteResultCard = ({ results }: VoteResultCardProps) => {
                     fontWeight: winner === "yes" ? 700 : winner === "no" ? 700 : 400,
                   }}
                 >
-                  {yes}
+                  {yesPercentage}%
                 </div>
                 <div className={`text-sm ${textClass("yes")}`}>Yes</div>
               </div>
@@ -123,12 +127,19 @@ export const VoteResultCard = ({ results }: VoteResultCardProps) => {
                     fontWeight: winner === "no" ? 700 : winner === "yes" ? 700 : 400,
                   }}
                 >
-                  {no}
+                  {noPercentage}%
                 </div>
                 <div className={`text-sm ${textClass("no")}`}>No</div>
               </div>
             </div>
           </div>
+        </div>
+        <div className={`mt-4 text-center`}>
+          {canExecute && (
+            <Button size="lg" variant={"success"} disabled={isConfirmingExecution} onClick={executeProposal}>
+              Execute proposal
+            </Button>
+          )}
         </div>
       </div>
     </Card>

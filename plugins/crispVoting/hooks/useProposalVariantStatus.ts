@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Proposal } from "../utils/types";
 import { ProposalStatus } from "@aragon/ods";
 import { useToken } from "./useToken";
+
+import type { Proposal } from "../utils/types";
 
 export const useProposalVariantStatus = (proposal: Proposal) => {
   const [status, setStatus] = useState({ variant: "", label: "" });
@@ -24,7 +25,14 @@ export const useProposalVariantStatus = (proposal: Proposal) => {
     } else if (proposal.tally.no > proposal.tally.yes) {
       setStatus({ variant: "critical", label: "Defeated" });
     }
-  }, [proposal?.tally, proposal?.active, proposal?.executed, proposal?.parameters?.minVotingPower, totalSupply]);
+  }, [
+    proposal,
+    proposal?.tally,
+    proposal?.active,
+    proposal?.executed,
+    proposal?.parameters?.minVotingPower,
+    totalSupply,
+  ]);
 
   return status;
 };
@@ -53,7 +61,14 @@ export const useProposalStatus = (proposal: Proposal) => {
     } else {
       setStatus(ProposalStatus.PENDING);
     }
-  }, [proposal?.tally, proposal?.active, proposal?.executed, proposal?.parameters?.minVotingPower, totalSupply]);
+  }, [
+    proposal,
+    proposal?.tally,
+    proposal?.active,
+    proposal?.executed,
+    proposal?.parameters?.minVotingPower,
+    totalSupply,
+  ]);
 
   return status;
 };

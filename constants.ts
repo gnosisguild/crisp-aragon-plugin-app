@@ -1,17 +1,16 @@
-import { Address } from "viem";
-import { ChainName, getChain } from "./utils/chains";
+import { getChain } from "./utils/chains";
+
+import type { Address } from "viem";
+import type { ChainName } from "./utils/chains";
 
 // Contract Addresses
 export const PUB_DAO_ADDRESS = (process.env.NEXT_PUBLIC_DAO_ADDRESS ?? "") as Address;
 export const PUB_TOKEN_ADDRESS = (process.env.NEXT_PUBLIC_TOKEN_ADDRESS ?? "") as Address;
 export const PUB_ENCLAVE_FEE_TOKEN_ADDRESS = (process.env.NEXT_PUBLIC_ENCLAVE_FEE_TOKEN_ADDRESS ?? "") as Address;
-
 export const PUB_CRISP_VOTING_PLUGIN_ADDRESS = (process.env.NEXT_PUBLIC_CRISP_VOTING_PLUGIN_ADDRESS ?? "") as Address;
 export const PUB_CRISP_SERVER_URL = (process.env.NEXT_PUBLIC_CRISP_SERVER_URL ?? "") as string;
 
 export const PUB_BRIDGE_ADDRESS = (process.env.NEXT_PUBLIC_BRIDGE_ADDRESS ?? "") as Address;
-
-export const ENCLAVE_ADDRESS = (process.env.NEXT_PUBLIC_ENCLAVE_ADDRESS ?? "") as Address;
 
 export const PUBLIC_SECONDS_PER_BLOCK = Number(process.env.NEXT_PUBLIC_SECONDS_PER_BLOCK ?? 1); // ETH Mainnet block takes ~12s
 export const MINIMUM_START_DELAY_IN_SECONDS = Number(process.env.NEXT_PUBLIC_MINIMUM_START_DELAY_IN_SECONDS ?? 30);
@@ -37,7 +36,7 @@ export const PUB_APP_NAME = "Aragon - CRISP Voting on Enclave";
 export const PUB_APP_DESCRIPTION = "DAO Voting on Enclave using CRISP";
 export const PUB_TOKEN_SYMBOL = "DVT";
 
-export const PUB_PROJECT_LOGO = "/logo.png";
+export const PUB_PROJECT_LOGO = "/enclave-banner.svg";
 export const PUB_PROJECT_URL = process.env.NEXT_PUBLIC_PROJECT_URL ?? "https://aragon.org/";
 export const PUB_WALLET_ICON = "https://avatars.githubusercontent.com/u/37784886";
 export const PUB_BLOG_URL = "https://aragon.org/";

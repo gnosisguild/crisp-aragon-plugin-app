@@ -9,8 +9,8 @@ export function usePastSupply(snapshotBlock: bigint | undefined) {
     address: PUB_TOKEN_ADDRESS,
     abi: erc20Votes,
     functionName: "getPastTotalSupply",
-    args: [BigInt(snapshotBlock || 0)],
+    args: [BigInt(snapshotBlock ?? 0)],
   });
 
-  return pastSupply || BigInt(0);
+  return pastSupply ?? BigInt(0);
 }

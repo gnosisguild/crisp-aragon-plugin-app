@@ -17,7 +17,7 @@ export function useCanVote(proposalId: bigint) {
 
   useEffect(() => {
     refreshCanVote();
-  }, [blockNumber]);
+  }, [blockNumber, refreshCanVote]);
 
   return canVote;
 }

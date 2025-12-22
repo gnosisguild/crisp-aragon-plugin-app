@@ -1,11 +1,9 @@
 import Link from "next/link";
-import { Card, ProposalStatus, ProposalDataListItem, IProposalDataListItemStructureProps } from "@aragon/ods";
+import { Card, ProposalStatus, ProposalDataListItem } from "@aragon/ods";
 import { PleaseWaitSpinner } from "@/components/please-wait";
 import { useProposal } from "../../hooks/useProposal";
 import { useProposalStatus } from "../../hooks/useProposalVariantStatus";
-// import { usePastSupply } from "../../hooks/usePastSupply";
 import { useToken } from "../../hooks/useToken";
-import { useAccount } from "wagmi";
 import { formatEther } from "viem";
 import { PUB_TOKEN_SYMBOL } from "@/constants";
 
@@ -24,7 +22,7 @@ export default function ProposalCard(props: ProposalInputs) {
   const showLoading = getShowProposalLoading(proposal, proposalFetchStatus);
 
   const hasVoted = false;
-  const totalVotes = (proposal?.tally.yes || BigInt(0)) + (proposal?.tally.no || BigInt(0));
+  const totalVotes = (proposal?.tally.yes ?? BigInt(0)) + (proposal?.tally.no ?? BigInt(0));
 
   if (!proposal && showLoading) {
     return (
@@ -66,13 +64,13 @@ export default function ProposalCard(props: ProposalInputs) {
   if (proposal?.tally.yes > proposal?.tally.no) {
     result = {
       option: "Yes",
-      voteAmount: formatEther(proposal.tally.yes) + " " + (tokenSymbol || PUB_TOKEN_SYMBOL),
+      voteAmount: `${formatEther(proposal.tally.yes)} ${tokenSymbol ?? PUB_TOKEN_SYMBOL}`,
       votePercentage: Number(((proposal?.tally.yes || BigInt(0)) * BigInt(10_000)) / (totalVotes || BigInt(1))) / 100,
     };
   } else if (proposal?.tally.no > proposal?.tally.yes) {
     result = {
       option: "No",
-      voteAmount: formatEther(proposal.tally.no) + " " + (tokenSymbol || PUB_TOKEN_SYMBOL),
+      voteAmount: `${formatEther(proposal.tally.no)} ${tokenSymbol ?? PUB_TOKEN_SYMBOL}`,
       votePercentage: Number(((proposal?.tally.no || BigInt(0)) * BigInt(10_000)) / (totalVotes || BigInt(1))) / 100,
     };
   }

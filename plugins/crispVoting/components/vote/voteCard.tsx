@@ -15,16 +15,7 @@ export interface VoteCardProps {
   onClickVote: (voteOption: VoteOption) => void;
 }
 
-export const VoteCard = ({
-  error,
-  voteStartDate,
-  voteEndDate,
-  proposalId,
-  disabled,
-  isLoading,
-  onClickVote,
-}: VoteCardProps) => {
-  const { executeProposal, canExecute, isConfirming: isConfirmingExecution } = useProposalExecute(proposalId);
+export const VoteCard = ({ error, voteStartDate, disabled, isLoading, onClickVote }: VoteCardProps) => {
   const [voteOption, setVoteOption] = useState<VoteOption | null>(null);
 
   return (
@@ -64,13 +55,6 @@ export const VoteCard = ({
           >
             {isLoading && voteOption === VoteOption.No ? <PleaseWaitSpinner fullMessage="No" /> : "No"}
           </Button>
-        </div>
-        <div>
-          {voteEndDate && voteEndDate < Math.round(Date.now() / 1000) && canExecute && (
-            <Button size="sm" variant={"success"} disabled={isConfirmingExecution} onClick={executeProposal}>
-              Execute proposal
-            </Button>
-          )}
         </div>
       </div>
     </Card>

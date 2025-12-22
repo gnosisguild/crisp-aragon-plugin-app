@@ -2,10 +2,11 @@ import { PUB_CRISP_SERVER_URL, PUB_TOKEN_ADDRESS } from "@/constants";
 import { useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
 import type { IRoundDetailsResponse } from "../utils/types";
-import { encodeSolidityProof, SIGNATURE_MESSAGE, SIGNATURE_MESSAGE_HASH, generateVoteProof } from "@crisp-e3/sdk";
+import { encodeSolidityProof, SIGNATURE_MESSAGE, SIGNATURE_MESSAGE_HASH } from "@crisp-e3/sdk";
 import { iVotesAbi } from "../artifacts/iVotes";
 import { publicClient } from "../utils/client";
 import { useAlerts } from "@/context/Alerts";
+import { crispSdk } from "../utils/crispSdk";
 
 export const CRISP_SERVER_STATE_LITE_ROUTE = "state/lite";
 export const CRISP_SERVER_STATE_TOKEN_HOLDERS = "state/token-holders";
@@ -109,17 +110,17 @@ export function useCrispServer(): CrispServerState {
 
       const adjustedBalance = balance / 10n ** BigInt(decimals / 2);
 
-      console.log("Adjusted balance:", adjustedBalance);
-
       const vote = voteOption === 0n ? { yes: adjustedBalance, no: 0n } : { yes: 0n, no: adjustedBalance };
 
-      const proof = await generateVoteProof({
+      const proof = await crispSdk.generateVoteProof({
         merkleLeaves,
         publicKey: new Uint8Array(roundState.committee_public_key),
         balance: adjustedBalance,
         vote,
         signature,
         messageHash: SIGNATURE_MESSAGE_HASH,
+        e3Id: Number(e3Id),
+        slotAddress: address as string,
       });
 
       const encodedProof = encodeSolidityProof(proof);

@@ -26,6 +26,7 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
   const { address } = useAccount();
   const { isLoading, error, postVote } = useCrispServer();
   const { proposal, status: proposalFetchStatus } = useProposal(proposalIdx);
+
   const canVote = useCanVote(proposalIdx);
   const { balance, delegatesTo } = useTokenVotes(address);
 
@@ -93,6 +94,7 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
           <div className="flex flex-col gap-y-6 md:w-[33%]">
             {proposalStatus !== ProposalStatus.ACTIVE && (
               <VoteResultCard
+                proposalId={proposalIdx}
                 results={[
                   { option: "yes", value: String(proposal.tally.yes || ZERO) },
                   { option: "no", value: String(proposal.tally.no || ZERO) },
