@@ -1,5 +1,5 @@
 import { type Address } from "viem";
-import { IProposalResource, type RawAction } from "@/utils/types";
+import type { IProposalResource, RawAction } from "@/utils/types";
 
 export type ProposalInputs = {
   proposalId: bigint;
@@ -26,11 +26,6 @@ export type Tally = {
 export type MetadataResource = {
   name: string;
   url: string;
-};
-
-type TargetConfig = {
-  target: Address;
-  operation: number;
 };
 
 export type Proposal = {

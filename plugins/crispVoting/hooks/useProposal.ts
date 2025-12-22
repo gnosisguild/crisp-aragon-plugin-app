@@ -7,7 +7,7 @@ import { getAbiItem, fromHex } from "viem";
 import { publicClient } from "../utils/client";
 
 import type { RawAction, ProposalMetadata } from "@/utils/types";
-import type { Proposal } from "../utils/types";
+import type { Proposal, Tally } from "../utils/types";
 import type { AbiEvent, Hex } from "viem";
 
 type ProposalCreatedLogResponse = {
@@ -134,7 +134,7 @@ function arrangeProposalData(
     active: proposalData.parameters.endDate > BigInt(Math.floor(Date.now() / 1000)),
     executed: proposalData.executed,
     parameters: proposalData.parameters,
-    tally: proposalData.tally || tally,
+    tally: tally || proposalData.tally,
     allowFailureMap: proposalData.allowFailureMap,
     creator: creationEvent?.creator ?? "",
     title: metadata?.title ?? "",
