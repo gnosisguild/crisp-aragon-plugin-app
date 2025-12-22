@@ -24,7 +24,7 @@ function getEncodedArgs(action: RawAction) {
       { title: "To", value: action.to },
       {
         title: "Value",
-        value: `${formatterUtils.formatNumber(formatEther(action.value, "wei"), { format: NumberFormat.TOKEN_AMOUNT_SHORT })} ${PUB_CHAIN.nativeCurrency.symbol}`,
+        value: `${parseFloat(formatEther(action.value ?? BigInt(0))).toFixed(6)} ${PUB_CHAIN.nativeCurrency.symbol}`,
       },
     ];
   }
