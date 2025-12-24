@@ -4,6 +4,8 @@ import { VoteOption } from "../../utils/types";
 import { PleaseWaitSpinner } from "@/components/please-wait";
 import { useState } from "react";
 import { useProposalExecute } from "../../hooks/useProposalExecute";
+import VotingStepIndicator from "./voteProgress";
+import { useCrispServer } from "../../hooks/useCrispServer";
 
 export interface VoteCardProps {
   error?: string;
@@ -18,6 +20,8 @@ export interface VoteCardProps {
 export const VoteCard = ({ error, voteStartDate, disabled, isLoading, onClickVote }: VoteCardProps) => {
   const [voteOption, setVoteOption] = useState<VoteOption | null>(null);
 
+  const { votingStep, lastActiveStep, stepMessage } = useCrispServer();
+
   return (
     <Card className="flex flex-col gap-y-4 p-6 shadow-neutral">
       <Heading size="h3">CRISP Proposal</Heading>
@@ -29,6 +33,7 @@ export const VoteCard = ({ error, voteStartDate, disabled, isLoading, onClickVot
           Submit your vote to the CRISP server. Results will be tallied by the Enclave network after the voting period
           ends.
         </p>
+        <VotingStepIndicator step={votingStep} lastActiveStep={lastActiveStep} message={stepMessage} />
         {voteStartDate &&
           voteStartDate > Math.round(Date.now() / 1000) &&
           `The vote will start on ${unixTimestampToDate(voteStartDate)}`}
