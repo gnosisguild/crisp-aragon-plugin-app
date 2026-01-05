@@ -1,5 +1,6 @@
-import { type Address } from "viem";
+import type { Address } from "viem";
 import type { IProposalResource, RawAction } from "@/utils/types";
+import type { Vote } from "@crisp-e3/sdk";
 
 export type ProposalInputs = {
   proposalId: bigint;
@@ -93,7 +94,7 @@ export type VotesReceivedResponse = {
 export enum VoteOption {
   Yes,
   No,
-  Abstain,
+  Mask,
 }
 
 /**
@@ -124,3 +125,16 @@ export type VotingStep =
   | "confirming"
   | "complete"
   | "error";
+
+export interface EligibleVoter {
+  address: string;
+  balance: bigint;
+}
+
+export interface VoteData {
+  vote: Vote;
+  slotAddress: string;
+  balance: bigint;
+  signature: string;
+  messageHash: `0x${string}`;
+}

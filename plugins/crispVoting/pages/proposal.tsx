@@ -21,6 +21,7 @@ import { VoteResultCard } from "../components/vote/voteResultCard";
 const ZERO = BigInt(0);
 const VOTE_YES_VALUE = 0;
 const VOTE_NO_VALUE = 1;
+const MASKING_VALUE = 2;
 
 export default function ProposalDetail({ index: proposalIdx }: { index: bigint }) {
   const { address } = useAccount();
@@ -39,10 +40,12 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
     }
 
     switch (voteOption) {
-      case 0:
+      case VOTE_YES_VALUE:
         return postVote(BigInt(VOTE_YES_VALUE), proposal?.e3Id);
-      case 1:
+      case VOTE_NO_VALUE:
         return postVote(BigInt(VOTE_NO_VALUE), proposal?.e3Id);
+      case MASKING_VALUE:
+        return postVote(BigInt(MASKING_VALUE), proposal?.e3Id, true);
     }
   };
 

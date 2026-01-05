@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@aragon/ods": "1.0.44",
-    "@crisp-e3/sdk": "0.5.4",
+    "@crisp-e3/sdk": "0.5.7",
     "@hookform/resolvers": "^3.9.0",
     "@phosphor-icons/react": "^2.1.10",
     "@react-native-async-storage/async-storage": "^1.24.0",
@@ -68,9 +68,6 @@
     "prettier-plugin-tailwindcss": "^0.5.13",
     "tailwindcss": "^3.4.10",
     "typescript": "^5.4.3"
-  },
-  "overrides": {
-    "@aztec/bb.js": "0.82.2"
   },
   "prettier": {
     "printWidth": 120,

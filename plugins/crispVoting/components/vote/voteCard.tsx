@@ -1,11 +1,9 @@
 import { Button, Card, Heading } from "@aragon/ods";
 import { unixTimestampToDate } from "../../utils/formatProposalDate";
-import { VoteOption, VotingStep } from "../../utils/types";
+import { VoteOption, type VotingStep } from "../../utils/types";
 import { PleaseWaitSpinner } from "@/components/please-wait";
 import { useState } from "react";
-import { useProposalExecute } from "../../hooks/useProposalExecute";
 import VotingStepIndicator from "./voteProgress";
-import { useCrispServer } from "../../hooks/useCrispServer";
 
 export interface VoteCardProps {
   error?: string;
@@ -17,7 +15,7 @@ export interface VoteCardProps {
   votingStep: VotingStep;
   lastActiveStep: VotingStep | null;
   stepMessage: string;
-  onClickVote: (voteOption: VoteOption) => void;
+  onClickVote: (voteOption: VoteOption, isMasking?: boolean) => void;
 }
 
 export const VoteCard = ({
@@ -42,6 +40,11 @@ export const VoteCard = ({
         <p>
           Submit your vote to the CRISP server. Results will be tallied by the Enclave network after the voting period
           ends.
+        </p>
+        <br />
+        <p>
+          In order to reduce the risk of collusion and coercion of this vote, you may choose to mask votes of other DAO
+          members. Press Mask to do that.
         </p>
         {isLoading && <VotingStepIndicator step={votingStep} lastActiveStep={lastActiveStep} message={stepMessage} />}
         {voteStartDate &&
@@ -69,6 +72,17 @@ export const VoteCard = ({
             variant={disabled ? "tertiary" : "critical"}
           >
             {isLoading && voteOption === VoteOption.No ? <PleaseWaitSpinner fullMessage="No" /> : "No"}
+          </Button>
+          <Button
+            size="md"
+            disabled={disabled ? disabled : isLoading}
+            variant={disabled ? "tertiary" : "secondary"}
+            onClick={() => {
+              setVoteOption(VoteOption.Mask);
+              onClickVote(VoteOption.Mask);
+            }}
+          >
+            {isLoading && voteOption === VoteOption.Mask ? <PleaseWaitSpinner fullMessage="Mask" /> : "Mask"}
           </Button>
         </div>
       </div>
