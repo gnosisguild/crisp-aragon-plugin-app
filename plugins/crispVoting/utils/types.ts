@@ -94,7 +94,7 @@ export type VotesReceivedResponse = {
 export enum VoteOption {
   Yes,
   No,
-  Abstain,
+  Mask,
 }
 
 /**

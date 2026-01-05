@@ -21,6 +21,7 @@ import { VoteResultCard } from "../components/vote/voteResultCard";
 const ZERO = BigInt(0);
 const VOTE_YES_VALUE = 0;
 const VOTE_NO_VALUE = 1;
+const MASKING_VALUE = 2;
 
 export default function ProposalDetail({ index: proposalIdx }: { index: bigint }) {
   const { address } = useAccount();
@@ -33,16 +34,18 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
   const showProposalLoading = getShowProposalLoading(proposal, proposalFetchStatus);
   const proposalStatus = useProposalStatus(proposal!);
 
-  const onVote = (voteOption: number | null, isMasking?: boolean) => {
+  const onVote = (voteOption: number | null) => {
     if (!proposal) {
       return;
     }
 
     switch (voteOption) {
-      case 0:
-        return postVote(BigInt(VOTE_YES_VALUE), proposal?.e3Id, isMasking);
-      case 1:
-        return postVote(BigInt(VOTE_NO_VALUE), proposal?.e3Id, isMasking);
+      case VOTE_YES_VALUE:
+        return postVote(BigInt(VOTE_YES_VALUE), proposal?.e3Id);
+      case VOTE_NO_VALUE:
+        return postVote(BigInt(VOTE_NO_VALUE), proposal?.e3Id);
+      case MASKING_VALUE:
+        return postVote(BigInt(MASKING_VALUE), proposal?.e3Id, true);
     }
   };
 

@@ -77,9 +77,12 @@ export const VoteCard = ({
             size="md"
             disabled={disabled ? disabled : isLoading}
             variant={disabled ? "tertiary" : "secondary"}
-            onClick={() => onClickVote(VoteOption.Yes, true)}
+            onClick={() => {
+              setVoteOption(VoteOption.Mask);
+              onClickVote(VoteOption.Mask);
+            }}
           >
-            {isLoading ? <PleaseWaitSpinner fullMessage="Mask" /> : "Mask"}
+            {isLoading && voteOption === VoteOption.Mask ? <PleaseWaitSpinner fullMessage="Mask" /> : "Mask"}
           </Button>
         </div>
       </div>
