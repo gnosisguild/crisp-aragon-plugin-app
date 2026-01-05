@@ -114,3 +114,13 @@ export interface IRoundDetailsResponse {
   token_address: string;
   balance_threshold: string;
 }
+
+export type VotingStep =
+  | "idle"
+  | "signing"
+  | "encrypting"
+  | "generating_proof"
+  | "broadcasting"
+  | "confirming"
+  | "complete"
+  | "error";

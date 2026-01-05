@@ -1,7 +1,7 @@
 import { PUB_CRISP_SERVER_URL, PUB_TOKEN_ADDRESS } from "@/constants";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
-import type { IRoundDetailsResponse } from "../utils/types";
+import type { IRoundDetailsResponse, VotingStep } from "../utils/types";
 import { encodeSolidityProof, SIGNATURE_MESSAGE, SIGNATURE_MESSAGE_HASH } from "@crisp-e3/sdk";
 import { iVotesAbi } from "../artifacts/iVotes";
 import { publicClient } from "../utils/client";
@@ -19,6 +19,9 @@ interface CrispServerState {
   error: string;
   postVote: (voteOption: bigint, e3Id: bigint) => Promise<void>;
   getTokenHoldersHashes: (e3Id: number) => Promise<bigint[]>;
+  votingStep: VotingStep;
+  lastActiveStep: VotingStep | null;
+  stepMessage: string;
 }
 
 /**
@@ -37,6 +40,10 @@ export interface BroadcastVoteRequest {
 export function useCrispServer(): CrispServerState {
   const { address } = useAccount();
   const { addAlert } = useAlerts();
+
+  const [votingStep, setVotingStep] = useState<VotingStep>("idle");
+  const [lastActiveStep, setLastActiveStep] = useState<VotingStep | null>(null);
+  const [stepMessage, setStepMessage] = useState<string>("");
 
   const { signMessageAsync } = useSignMessage();
 
@@ -79,6 +86,13 @@ export function useCrispServer(): CrispServerState {
     return data.map((s: string) => BigInt(`0x${s}`));
   };
 
+  const resetVotingState = useCallback(() => {
+    setVotingStep("idle");
+    setLastActiveStep(null);
+    setStepMessage("");
+    setIsLoading(false);
+  }, []);
+
   const postVote = async (voteOption: bigint, e3Id: bigint) => {
     setIsLoading(true);
     try {
@@ -86,6 +100,11 @@ export function useCrispServer(): CrispServerState {
         setError("No address found");
         return;
       }
+
+      // Step 1: Signing
+      setVotingStep("signing");
+      setLastActiveStep("signing");
+      setStepMessage("Please sign the message in your wallet...");
 
       // get the merkle leaves
       const merkleLeaves = await getTokenHoldersHashes(Number(e3Id));
@@ -112,6 +131,11 @@ export function useCrispServer(): CrispServerState {
 
       const vote = voteOption === 0n ? { yes: adjustedBalance, no: 0n } : { yes: 0n, no: adjustedBalance };
 
+      // Step 2: Encrypting vote
+      setVotingStep("encrypting");
+      setLastActiveStep("encrypting");
+      setStepMessage("");
+
       const proof = await crispSdk.generateVoteProof({
         merkleLeaves,
         publicKey: new Uint8Array(roundState.committee_public_key),
@@ -123,6 +147,13 @@ export function useCrispServer(): CrispServerState {
         slotAddress: address as string,
       });
 
+      // Step 3: Generating proof
+      setVotingStep("generating_proof");
+      setLastActiveStep("generating_proof");
+
+      // small delay for UX
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       const encodedProof = encodeSolidityProof(proof);
 
       // For now we are mocking
@@ -131,6 +162,10 @@ export function useCrispServer(): CrispServerState {
         address: address as string,
         round_id: Number(e3Id),
       };
+
+      // Step 4: Broadcasting
+      setVotingStep("broadcasting");
+      setLastActiveStep("broadcasting");
 
       const response = await fetch(`${PUB_CRISP_SERVER_URL}/voting/broadcast`, {
         method: "POST",
@@ -144,12 +179,15 @@ export function useCrispServer(): CrispServerState {
         setError("Failed to post vote");
       }
 
+      setVotingStep("complete");
+      setStepMessage(`Vote submitted successfully!'`);
+
       addAlert("Vote successfully posted", { timeout: 3000, type: "success" });
       setError("");
     } catch (error) {
       setError(error instanceof Error ? error.message : "Unknown error");
     } finally {
-      setIsLoading(false);
+      resetVotingState();
     }
   };
 
@@ -158,5 +196,8 @@ export function useCrispServer(): CrispServerState {
     error,
     isLoading,
     getTokenHoldersHashes,
+    votingStep,
+    lastActiveStep,
+    stepMessage,
   };
 }

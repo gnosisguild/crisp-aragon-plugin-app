@@ -24,7 +24,7 @@ const VOTE_NO_VALUE = 1;
 
 export default function ProposalDetail({ index: proposalIdx }: { index: bigint }) {
   const { address } = useAccount();
-  const { isLoading, error, postVote } = useCrispServer();
+  const { isLoading, error, postVote, votingStep, lastActiveStep, stepMessage } = useCrispServer();
   const { proposal, status: proposalFetchStatus } = useProposal(proposalIdx);
 
   const canVote = useCanVote(proposalIdx);
@@ -88,6 +88,9 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
               isLoading={isLoading}
               onClickVote={onVote}
               proposalId={proposalIdx}
+              votingStep={votingStep}
+              lastActiveStep={lastActiveStep}
+              stepMessage={stepMessage}
             />
             <p>{error}</p>
           </div>

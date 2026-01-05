@@ -1,9 +1,11 @@
 import { Button, Card, Heading } from "@aragon/ods";
 import { unixTimestampToDate } from "../../utils/formatProposalDate";
-import { VoteOption } from "../../utils/types";
+import { VoteOption, VotingStep } from "../../utils/types";
 import { PleaseWaitSpinner } from "@/components/please-wait";
 import { useState } from "react";
 import { useProposalExecute } from "../../hooks/useProposalExecute";
+import VotingStepIndicator from "./voteProgress";
+import { useCrispServer } from "../../hooks/useCrispServer";
 
 export interface VoteCardProps {
   error?: string;
@@ -12,10 +14,22 @@ export interface VoteCardProps {
   disabled: boolean;
   isLoading: boolean;
   proposalId: bigint;
+  votingStep: VotingStep;
+  lastActiveStep: VotingStep | null;
+  stepMessage: string;
   onClickVote: (voteOption: VoteOption) => void;
 }
 
-export const VoteCard = ({ error, voteStartDate, disabled, isLoading, onClickVote }: VoteCardProps) => {
+export const VoteCard = ({
+  error,
+  voteStartDate,
+  disabled,
+  isLoading,
+  onClickVote,
+  votingStep,
+  lastActiveStep,
+  stepMessage,
+}: VoteCardProps) => {
   const [voteOption, setVoteOption] = useState<VoteOption | null>(null);
 
   return (
@@ -29,6 +43,7 @@ export const VoteCard = ({ error, voteStartDate, disabled, isLoading, onClickVot
           Submit your vote to the CRISP server. Results will be tallied by the Enclave network after the voting period
           ends.
         </p>
+        {isLoading && <VotingStepIndicator step={votingStep} lastActiveStep={lastActiveStep} message={stepMessage} />}
         {voteStartDate &&
           voteStartDate > Math.round(Date.now() / 1000) &&
           `The vote will start on ${unixTimestampToDate(voteStartDate)}`}
@@ -39,7 +54,7 @@ export const VoteCard = ({ error, voteStartDate, disabled, isLoading, onClickVot
               onClickVote(VoteOption.Yes);
             }}
             disabled={disabled ? disabled : isLoading}
-            size="sm"
+            size="md"
             variant={disabled ? "tertiary" : "success"}
           >
             {isLoading && voteOption === VoteOption.Yes ? <PleaseWaitSpinner fullMessage="Yes" /> : "Yes"}
@@ -50,7 +65,7 @@ export const VoteCard = ({ error, voteStartDate, disabled, isLoading, onClickVot
               onClickVote(VoteOption.No);
             }}
             disabled={disabled ? disabled : isLoading}
-            size="sm"
+            size="md"
             variant={disabled ? "tertiary" : "critical"}
           >
             {isLoading && voteOption === VoteOption.No ? <PleaseWaitSpinner fullMessage="No" /> : "No"}
