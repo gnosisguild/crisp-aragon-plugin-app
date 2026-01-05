@@ -33,16 +33,16 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
   const showProposalLoading = getShowProposalLoading(proposal, proposalFetchStatus);
   const proposalStatus = useProposalStatus(proposal!);
 
-  const onVote = (voteOption: number | null) => {
+  const onVote = (voteOption: number | null, isMasking?: boolean) => {
     if (!proposal) {
       return;
     }
 
     switch (voteOption) {
       case 0:
-        return postVote(BigInt(VOTE_YES_VALUE), proposal?.e3Id);
+        return postVote(BigInt(VOTE_YES_VALUE), proposal?.e3Id, isMasking);
       case 1:
-        return postVote(BigInt(VOTE_NO_VALUE), proposal?.e3Id);
+        return postVote(BigInt(VOTE_NO_VALUE), proposal?.e3Id, isMasking);
     }
   };
 

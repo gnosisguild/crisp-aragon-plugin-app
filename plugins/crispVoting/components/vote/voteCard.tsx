@@ -1,11 +1,9 @@
 import { Button, Card, Heading } from "@aragon/ods";
 import { unixTimestampToDate } from "../../utils/formatProposalDate";
-import { VoteOption, VotingStep } from "../../utils/types";
+import { VoteOption, type VotingStep } from "../../utils/types";
 import { PleaseWaitSpinner } from "@/components/please-wait";
 import { useState } from "react";
-import { useProposalExecute } from "../../hooks/useProposalExecute";
 import VotingStepIndicator from "./voteProgress";
-import { useCrispServer } from "../../hooks/useCrispServer";
 
 export interface VoteCardProps {
   error?: string;
@@ -17,7 +15,7 @@ export interface VoteCardProps {
   votingStep: VotingStep;
   lastActiveStep: VotingStep | null;
   stepMessage: string;
-  onClickVote: (voteOption: VoteOption) => void;
+  onClickVote: (voteOption: VoteOption, isMasking?: boolean) => void;
 }
 
 export const VoteCard = ({
@@ -75,7 +73,12 @@ export const VoteCard = ({
           >
             {isLoading && voteOption === VoteOption.No ? <PleaseWaitSpinner fullMessage="No" /> : "No"}
           </Button>
-          <Button size="md" disabled={disabled ? disabled : isLoading} variant={disabled ? "tertiary" : "critical"}>
+          <Button
+            size="md"
+            disabled={disabled ? disabled : isLoading}
+            variant={disabled ? "tertiary" : "secondary"}
+            onClick={() => onClickVote(VoteOption.Yes, true)}
+          >
             {isLoading ? <PleaseWaitSpinner fullMessage="Mask" /> : "Mask"}
           </Button>
         </div>

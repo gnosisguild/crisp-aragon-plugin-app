@@ -12,7 +12,7 @@ import { getRandomVoterToMask } from "../utils/voters";
 
 export const CRISP_SERVER_STATE_LITE_ROUTE = "state/lite";
 export const CRISP_SERVER_STATE_TOKEN_HOLDERS = "state/token-holders";
-export const CRISP_SERVER_STATE_ELIGIBLE_VOTERS = "state/eligible-voters";
+export const CRISP_SERVER_STATE_ELIGIBLE_VOTERS = "state/eligible-addresses";
 
 /**
  * State of the Crisp server
@@ -20,7 +20,7 @@ export const CRISP_SERVER_STATE_ELIGIBLE_VOTERS = "state/eligible-voters";
 interface CrispServerState {
   isLoading: boolean;
   error: string;
-  postVote: (voteOption: bigint, e3Id: bigint) => Promise<void>;
+  postVote: (voteOption: bigint, e3Id: bigint, isAMask?: boolean) => Promise<void>;
   votingStep: VotingStep;
   lastActiveStep: VotingStep | null;
   stepMessage: string;
@@ -58,9 +58,10 @@ export function useCrispServer(): CrispServerState {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ round_id: e3Id }),
+      body: JSON.stringify({ round_id: Number(e3Id.toString()) }),
     });
 
+    console.log("getRoundState response:", response);
     if (!response.ok) {
       throw new Error(`Error fetching round data: ${response.statusText}`);
     }
@@ -76,7 +77,7 @@ export function useCrispServer(): CrispServerState {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ round_id: e3Id }),
+      body: JSON.stringify({ round_id: Number(e3Id.toString()) }),
     });
 
     if (!response.ok) {
@@ -94,7 +95,7 @@ export function useCrispServer(): CrispServerState {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ round_id: e3Id }),
+      body: JSON.stringify({ round_id: Number(e3Id.toString()) }),
     });
 
     if (!response.ok) {
@@ -117,7 +118,7 @@ export function useCrispServer(): CrispServerState {
     setError("");
   }, []);
 
-  const handleMask = useCallback(async (e3Id: bigint) => {
+  const handleMask = async (e3Id: bigint) => {
     const eligibleVoters = await getEligibleVoters(e3Id);
 
     if (!eligibleVoters || eligibleVoters.length === 0) {
@@ -138,46 +139,43 @@ export function useCrispServer(): CrispServerState {
       balance: voter.balance,
       slotAddress: voter.address,
     };
-  }, []);
+  };
 
-  const handleVote = useCallback(
-    async (e3Id: bigint, voteOption: bigint, blockNumber: bigint): Promise<VoteData> => {
-      // Step 1: Signing
-      setVotingStep("signing");
-      setLastActiveStep("signing");
-      setStepMessage("Please sign the message in your wallet...");
+  const handleVote = async (e3Id: bigint, voteOption: bigint, blockNumber: bigint): Promise<VoteData> => {
+    // Step 1: Signing
+    setVotingStep("signing");
+    setLastActiveStep("signing");
+    setStepMessage("Please sign the message in your wallet...");
 
-      const message = `Vote for round ${e3Id}`;
-      const signature = await signMessageAsync({ message });
-      const messageHash = hashMessage(message);
+    const message = `Vote for round ${e3Id}`;
+    const signature = await signMessageAsync({ message });
+    const messageHash = hashMessage(message);
 
-      const balance = await publicClient.readContract({
-        address: PUB_TOKEN_ADDRESS,
-        abi: iVotesAbi,
-        functionName: "getPastVotes",
-        args: [address as `0x${string}`, blockNumber],
-      });
+    const balance = await publicClient.readContract({
+      address: PUB_TOKEN_ADDRESS,
+      abi: iVotesAbi,
+      functionName: "getPastVotes",
+      args: [address as `0x${string}`, blockNumber],
+    });
 
-      const decimals = await publicClient.readContract({
-        address: PUB_TOKEN_ADDRESS,
-        abi: iVotesAbi,
-        functionName: "decimals",
-      });
+    const decimals = await publicClient.readContract({
+      address: PUB_TOKEN_ADDRESS,
+      abi: iVotesAbi,
+      functionName: "decimals",
+    });
 
-      const adjustedBalance = balance / 10n ** BigInt(decimals / 2);
+    const adjustedBalance = balance / 10n ** BigInt(decimals / 2);
 
-      const vote = voteOption === 0n ? { yes: adjustedBalance, no: 0n } : { yes: 0n, no: adjustedBalance };
+    const vote = voteOption === 0n ? { yes: adjustedBalance, no: 0n } : { yes: 0n, no: adjustedBalance };
 
-      return {
-        signature,
-        messageHash,
-        vote,
-        balance: adjustedBalance,
-        slotAddress: address as string,
-      };
-    },
-    [signMessageAsync, address]
-  );
+    return {
+      signature,
+      messageHash,
+      vote,
+      balance: adjustedBalance,
+      slotAddress: address as string,
+    };
+  };
 
   const postVote = async (voteOption: bigint, e3Id: bigint, isAMask: boolean = false) => {
     setIsLoading(true);
@@ -261,7 +259,7 @@ export function useCrispServer(): CrispServerState {
       }
 
       setVotingStep("complete");
-      setStepMessage(`${isAMask ? "Masking" : "Vote"} submitted successfully!'`);
+      setStepMessage(`${isAMask ? "Masking" : "Vote"} submitted successfully!`);
 
       addAlert(`${isAMask ? "Masking" : "Vote"} submitted successfully!'`, { timeout: 3000, type: "success" });
     } catch (error) {
