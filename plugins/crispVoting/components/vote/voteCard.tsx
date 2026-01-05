@@ -43,6 +43,11 @@ export const VoteCard = ({
           Submit your vote to the CRISP server. Results will be tallied by the Enclave network after the voting period
           ends.
         </p>
+        <br />
+        <p>
+          In order to reduce the risk of collusion and coercion of this vote, you may choose to mask votes of other DAO
+          members. Press Mask to do that.
+        </p>
         {isLoading && <VotingStepIndicator step={votingStep} lastActiveStep={lastActiveStep} message={stepMessage} />}
         {voteStartDate &&
           voteStartDate > Math.round(Date.now() / 1000) &&
@@ -69,6 +74,9 @@ export const VoteCard = ({
             variant={disabled ? "tertiary" : "critical"}
           >
             {isLoading && voteOption === VoteOption.No ? <PleaseWaitSpinner fullMessage="No" /> : "No"}
+          </Button>
+          <Button size="md" disabled={disabled ? disabled : isLoading} variant={disabled ? "tertiary" : "critical"}>
+            {isLoading ? <PleaseWaitSpinner fullMessage="Mask" /> : "Mask"}
           </Button>
         </div>
       </div>

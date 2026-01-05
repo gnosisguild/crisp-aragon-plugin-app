@@ -1,15 +1,18 @@
 import { PUB_CRISP_SERVER_URL, PUB_TOKEN_ADDRESS } from "@/constants";
 import { useCallback, useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
-import type { IRoundDetailsResponse, VotingStep } from "../utils/types";
-import { encodeSolidityProof, SIGNATURE_MESSAGE, SIGNATURE_MESSAGE_HASH } from "@crisp-e3/sdk";
+import type { EligibleVoter, IRoundDetailsResponse, VoteData, VotingStep } from "../utils/types";
+import { encodeSolidityProof, generatePublicKey, SIGNATURE_MESSAGE, SIGNATURE_MESSAGE_HASH } from "@crisp-e3/sdk";
 import { iVotesAbi } from "../artifacts/iVotes";
 import { publicClient } from "../utils/client";
 import { useAlerts } from "@/context/Alerts";
 import { crispSdk } from "../utils/crispSdk";
+import { hashMessage } from "viem";
+import { getRandomVoterToMask } from "../utils/voters";
 
 export const CRISP_SERVER_STATE_LITE_ROUTE = "state/lite";
 export const CRISP_SERVER_STATE_TOKEN_HOLDERS = "state/token-holders";
+export const CRISP_SERVER_STATE_ELIGIBLE_VOTERS = "state/eligible-voters";
 
 /**
  * State of the Crisp server
@@ -18,7 +21,6 @@ interface CrispServerState {
   isLoading: boolean;
   error: string;
   postVote: (voteOption: bigint, e3Id: bigint) => Promise<void>;
-  getTokenHoldersHashes: (e3Id: number) => Promise<bigint[]>;
   votingStep: VotingStep;
   lastActiveStep: VotingStep | null;
   stepMessage: string;
@@ -50,7 +52,7 @@ export function useCrispServer(): CrispServerState {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
-  const getRoundState = async (e3Id: number): Promise<IRoundDetailsResponse> => {
+  const getRoundState = async (e3Id: bigint): Promise<IRoundDetailsResponse> => {
     const response = await fetch(`${PUB_CRISP_SERVER_URL}/${CRISP_SERVER_STATE_LITE_ROUTE}`, {
       method: "POST",
       headers: {
@@ -68,7 +70,7 @@ export function useCrispServer(): CrispServerState {
     return data;
   };
 
-  const getTokenHoldersHashes = async (e3Id: number): Promise<bigint[]> => {
+  const getTokenHoldersHashes = async (e3Id: bigint): Promise<bigint[]> => {
     const response = await fetch(`${PUB_CRISP_SERVER_URL}/${CRISP_SERVER_STATE_TOKEN_HOLDERS}`, {
       method: "POST",
       headers: {
@@ -86,33 +88,68 @@ export function useCrispServer(): CrispServerState {
     return data.map((s: string) => BigInt(`0x${s}`));
   };
 
+  const getEligibleVoters = async (e3Id: bigint): Promise<EligibleVoter[]> => {
+    const response = await fetch(`${PUB_CRISP_SERVER_URL}/${CRISP_SERVER_STATE_ELIGIBLE_VOTERS}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ round_id: e3Id }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error fetching eligible voters: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    return data.map((v: EligibleVoter) => ({
+      address: v.address,
+      balance: Number(v.balance),
+    }));
+  };
+
   const resetVotingState = useCallback(() => {
     setVotingStep("idle");
     setLastActiveStep(null);
     setStepMessage("");
     setIsLoading(false);
+    setError("");
   }, []);
 
-  const postVote = async (voteOption: bigint, e3Id: bigint) => {
-    setIsLoading(true);
-    try {
-      if (!address) {
-        setError("No address found");
-        return;
-      }
+  const handleMask = useCallback(async (e3Id: bigint) => {
+    const eligibleVoters = await getEligibleVoters(e3Id);
 
+    if (!eligibleVoters || eligibleVoters.length === 0) {
+      throw new Error("No eligible voters available for masking");
+    }
+
+    const voter = getRandomVoterToMask(eligibleVoters);
+
+    return {
+      voter,
+      eligibleVoters,
+      messageHash: "",
+      signature: "",
+      vote: {
+        yes: 0n,
+        no: 0n,
+      },
+      balance: voter.balance,
+      slotAddress: voter.address,
+    };
+  }, []);
+
+  const handleVote = useCallback(
+    async (e3Id: bigint, voteOption: bigint, blockNumber: bigint): Promise<VoteData> => {
       // Step 1: Signing
       setVotingStep("signing");
       setLastActiveStep("signing");
       setStepMessage("Please sign the message in your wallet...");
 
-      // get the merkle leaves
-      const merkleLeaves = await getTokenHoldersHashes(Number(e3Id));
-
-      const signature = await signMessageAsync({ message: SIGNATURE_MESSAGE });
-
-      const roundState = await getRoundState(Number(e3Id));
-      const blockNumber = BigInt(roundState.start_block) - 1n;
+      const message = `Vote for round ${e3Id}`;
+      const signature = await signMessageAsync({ message });
+      const messageHash = hashMessage(message);
 
       const balance = await publicClient.readContract({
         address: PUB_TOKEN_ADDRESS,
@@ -131,21 +168,65 @@ export function useCrispServer(): CrispServerState {
 
       const vote = voteOption === 0n ? { yes: adjustedBalance, no: 0n } : { yes: 0n, no: adjustedBalance };
 
+      return {
+        signature,
+        messageHash,
+        vote,
+        balance: adjustedBalance,
+        slotAddress: address as string,
+      };
+    },
+    [signMessageAsync, address]
+  );
+
+  const postVote = async (voteOption: bigint, e3Id: bigint, isAMask: boolean = false) => {
+    setIsLoading(true);
+    try {
+      if (!address) {
+        setError("No address found");
+        return;
+      }
+
+      const roundState = await getRoundState(e3Id);
+      const publicKey = new Uint8Array(roundState.committee_public_key);
+
+      let voteData;
+      if (isAMask) {
+        voteData = await handleMask(e3Id);
+      } else {
+        voteData = await handleVote(e3Id, voteOption, BigInt(roundState.start_block) - 1n);
+      }
+
+      // get the merkle leaves
+      const merkleLeaves = await getTokenHoldersHashes(e3Id);
+
       // Step 2: Encrypting vote
       setVotingStep("encrypting");
       setLastActiveStep("encrypting");
       setStepMessage("");
 
-      const proof = await crispSdk.generateVoteProof({
-        merkleLeaves,
-        publicKey: new Uint8Array(roundState.committee_public_key),
-        balance: adjustedBalance,
-        vote,
-        signature,
-        messageHash: SIGNATURE_MESSAGE_HASH,
-        e3Id: Number(e3Id),
-        slotAddress: address as string,
-      });
+      let proof;
+
+      if (isAMask) {
+        proof = await crispSdk.generateMaskVoteProof({
+          e3Id: Number(e3Id),
+          merkleLeaves,
+          slotAddress: voteData.slotAddress,
+          publicKey,
+          balance: voteData.balance,
+        });
+      } else {
+        proof = await crispSdk.generateVoteProof({
+          merkleLeaves,
+          publicKey,
+          balance: voteData.balance,
+          vote: voteData.vote,
+          signature: voteData.signature as `0x${string}`,
+          messageHash: voteData.messageHash as `0x${string}`,
+          e3Id: Number(e3Id),
+          slotAddress: voteData.slotAddress,
+        });
+      }
 
       // Step 3: Generating proof
       setVotingStep("generating_proof");
@@ -180,10 +261,9 @@ export function useCrispServer(): CrispServerState {
       }
 
       setVotingStep("complete");
-      setStepMessage(`Vote submitted successfully!'`);
+      setStepMessage(`${isAMask ? "Masking" : "Vote"} submitted successfully!'`);
 
-      addAlert("Vote successfully posted", { timeout: 3000, type: "success" });
-      setError("");
+      addAlert(`${isAMask ? "Masking" : "Vote"} submitted successfully!'`, { timeout: 3000, type: "success" });
     } catch (error) {
       setError(error instanceof Error ? error.message : "Unknown error");
     } finally {
@@ -195,7 +275,6 @@ export function useCrispServer(): CrispServerState {
     postVote,
     error,
     isLoading,
-    getTokenHoldersHashes,
     votingStep,
     lastActiveStep,
     stepMessage,
