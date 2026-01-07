@@ -116,15 +116,7 @@ export interface IRoundDetailsResponse {
   balance_threshold: string;
 }
 
-export type VotingStep =
-  | "idle"
-  | "signing"
-  | "encrypting"
-  | "generating_proof"
-  | "broadcasting"
-  | "confirming"
-  | "complete"
-  | "error";
+export type VotingStep = "idle" | "signing" | "generating_proof" | "broadcasting" | "confirming" | "complete" | "error";
 
 export interface EligibleVoter {
   address: string;

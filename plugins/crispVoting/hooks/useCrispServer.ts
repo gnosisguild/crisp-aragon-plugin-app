@@ -61,7 +61,6 @@ export function useCrispServer(): CrispServerState {
       body: JSON.stringify({ round_id: Number(e3Id.toString()) }),
     });
 
-    console.log("getRoundState response:", response);
     if (!response.ok) {
       throw new Error(`Error fetching round data: ${response.statusText}`);
     }
@@ -185,6 +184,11 @@ export function useCrispServer(): CrispServerState {
         return;
       }
 
+      addAlert(`${isAMask ? "Masking" : "Vote"} generation started! Please do not leave the current page.`, {
+        timeout: 3000,
+        type: "info",
+      });
+
       const roundState = await getRoundState(e3Id);
       const publicKey = new Uint8Array(roundState.committee_public_key);
 
@@ -198,9 +202,9 @@ export function useCrispServer(): CrispServerState {
       // get the merkle leaves
       const merkleLeaves = await getTokenHoldersHashes(e3Id);
 
-      // Step 2: Encrypting vote
-      setVotingStep("encrypting");
-      setLastActiveStep("encrypting");
+      // Step 2: Encrypting vote and Generating proof
+      setVotingStep("generating_proof");
+      setLastActiveStep("generating_proof");
       setStepMessage("");
 
       let proof;
@@ -226,13 +230,6 @@ export function useCrispServer(): CrispServerState {
         });
       }
 
-      // Step 3: Generating proof
-      setVotingStep("generating_proof");
-      setLastActiveStep("generating_proof");
-
-      // small delay for UX
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
       const encodedProof = encodeSolidityProof(proof);
 
       // For now we are mocking
@@ -242,7 +239,7 @@ export function useCrispServer(): CrispServerState {
         round_id: Number(e3Id),
       };
 
-      // Step 4: Broadcasting
+      // Step 3: Broadcasting
       setVotingStep("broadcasting");
       setLastActiveStep("broadcasting");
 
@@ -261,7 +258,7 @@ export function useCrispServer(): CrispServerState {
       setVotingStep("complete");
       setStepMessage(`${isAMask ? "Masking" : "Vote"} submitted successfully!`);
 
-      addAlert(`${isAMask ? "Masking" : "Vote"} submitted successfully!'`, { timeout: 3000, type: "success" });
+      addAlert(`${isAMask ? "Masking" : "Vote"} submitted successfully!`, { timeout: 3000, type: "success" });
     } catch (error) {
       setError(error instanceof Error ? error.message : "Unknown error");
     } finally {
