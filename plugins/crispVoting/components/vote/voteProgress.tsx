@@ -10,7 +10,6 @@ import {
   CircleNotchIcon,
   WarningIcon,
   PencilSimpleIcon,
-  LockIcon,
   BroadcastIcon,
   ShieldCheckIcon,
 } from "@phosphor-icons/react";
@@ -24,7 +23,6 @@ type VotingStepIndicatorProps = {
 
 const steps: { key: VotingStep; label: string; icon: React.ElementType }[] = [
   { key: "signing", label: "Sign", icon: PencilSimpleIcon },
-  { key: "encrypting", label: "Encrypt", icon: LockIcon },
   { key: "generating_proof", label: "Proof", icon: ShieldCheckIcon },
   { key: "broadcasting", label: "Broadcast", icon: BroadcastIcon },
 ];
