@@ -1,74 +1,34 @@
-# Governance App Template
+# CRISP Aragon Plugin Frontend
+
+> This project is built on top of Aragon's Governance App Template https://github.com/aragon/gov-app-template - credits to Aragon for the original codebase!
 
 ## Overview
 
-This project is a versatile host UI including common tools, services and a set of example modules to build custom DAO apps. The following example plugin UI's are available:
+This project is a frontend to demo a governance plugin built using [Aragon OSx](https://www.aragon.org/osx) and [Enclave](enclave.gg).
+
+The CRISP on Aragon plugin provides private and coercion resistent voting to DAO using the Aragon OSx stack.
 
 ### Proposal section
 
-This section displays all the proposals which need to be ratified by the community of token holders. Proposals follow an optimistic governance flow. They created by the Council and token holders have the chance to veto them for a certain amount of time.
+This section displays all the proposals which need to be ratified by the community of token holders. Proposals allow anyone with a certain token balance to vote, and all votes are always kept private.
 
-This flow attempts to find a good balance between efficiency, agility, prevent spam or attacks and decentralization.
-
-### Multisig Council
-
-This section features a multisig plugin which is only visible to the Council members. It allows to create, approve and eventually relay proposals to the community section described above.
-
-### Security Council
-
-This section is also a multisig plugin, with the difference that a super majority of the Security Council can approve and execute proposals that are time critical. This plugin may be disabled in future iterations of the DAO but for the time being, it allows respond to potential security threats in a much quicker way.
-
-The metadata and the actions of the proposal are encrypted until the proposal has been executed. See [Encryption and decryption flows](#encryption-and-decryption-flows) below.
-
-### Members section
-
-This section shows a recap of the delegates who publish an announcement, as well as the Security Council members. Delegates can use this section to create their own profile while token holders can browse delegates and can eventually delegate to a candidate of their trust.
-
-## Encryption and decryption flows
-
-In proposals where metadata needs to be kept private until the end, we implement a two-layer encryption model which combines symmetric and asymmetric keys.
-
-The data that we need to encrypt includes:
-
-- **Human readable data**, explaining why the proposal should be approved
-- The **actions to execute** if the proposal passes
-
-### Encryption steps
-
-1. A user signs a static payload using his/her wallet. The resulting hash is used as a 256-bit private key to generate an ephemeral, in-memory key pair
-2. One of the multisig members generates a random symmetric key and uses it to encrypt the metadata and the actions
-3. The member fetches the public keys corresponding to the current Security Council members
-4. For each member's public key, he uses it to encrypt the key from step (1)
-5. This generates a payload with:
-
-- The (symmetrically) encrypted metadata and proposals
-- The (asymmetrically) encrypted keys that only each member can recover
-
-6. The payload is pinned on IPFS
-
-- The IPFS URI is published as the proposal metadata
-- The hash of the unencrypted metadata is also published as part of the proposal
-
-![](./readme-encryption-flow.png)
-
-### Encryption steps
-
-1. One of the multisig members fetches the proposal, along with the pinned IPFS metadata
-2. The member signs the same predefined payload to generate the in-memory key pair
-3. The user locates the key that was encrypted for his/her wallet
-4. He then uses it as the symmetric key to decrypt the metadata and the proposal actions
-
-![](./readme-decryption-flow.png)
+The Enclave network will tally the votes when a proposal ends and report the result back to the smart contracts which will then allow proposals to be executed if they pass.
 
 ## Getting Started with the UI
 
 Before you start, make sure you have Bun installed on your machine. If not, hop over to [Bun's official documentation](https://bun.sh/) for installation instructions.
 
-Once you're set with Bun, clone this repository to your local machine:
+The plugin itself can be deployed from the following repository:
+
+- `https://github.com/gnosisguild/crisp-aragon-plugin`
+
+Please head there for instructions on how to setup and deploy the plugin smart contracts.
+
+Once you're done with the steps above, clone this repository to your local machine:
 
 ```bash
-git clone https://github.com/aragon/gov-app-template.git
-cd gov-app-template
+git clone https://github.com/gnosisguild/crisp-aragon-plugin-app.git
+cd crisp-aragon-plugin-app
 ```
 
 To get the development server running, simply execute:
@@ -78,34 +38,47 @@ bun install
 bun dev
 ```
 
-## Adding Your Plugin 🧩
-
-Got a plugin idea that's going to revolutionize the Aragon ecosystem? Adding it to the Governance App Template is easy:
-
-1. **Duplicate a Plugin Directory**: Navigate to the `/plugins` directory, pick a plugin that closely resembles your idea, and duplicate its directory.
-2. **Rename Your Plugin**: Give your plugin a unique and catchy name that captures its essence.
-3. **Register Your Plugin**: Open the `index.tsx` file inside the `/plugins` directory and add an entry for your new plugin.
-
-And that's it!
-
-## Leveraging Aragon OSx Primitives 🛠
-
-Governance App Template is built to work seamlessly with Aragon OSx primitives, such as `IProposal` or `MajorityVoting`. This means you can focus on the fun part of creating and experimenting, without sweating the small stuff. Your plugin should integrate smoothly into the UI, making your development journey as breezy as a blockchain. 😉
-
-## Contributing 🤝
-
-Got ideas on how to make this template even better? We're all ears! Whether it's a bug fix, a new feature, or a plugin that could benefit everyone, we welcome your contributions. Check out our [contributing guidelines](CONTRIBUTING.md) for more information on how to get involved.
-
-### You can configure your repository to pull changes from this repository with:
+Make sure you have configured the necessary environment variables:
 
 ```bash
-git remote add upstream git@github.com:aragon/gov-app-template.git
-git remote set-url --push upstream DISABLE
+# PUBLIC ENV VARS
+
+# General
+NEXT_PUBLIC_DAO_ADDRESS=0xd9A924bF3FaE756417b9B9DCC94C24681534b8F7
+NEXT_PUBLIC_TOKEN_ADDRESS=0x9A3218197C77F54BB2510FBBcc7Da3A4D2bE0DeE
+NEXT_PUBLIC_ENCLAVE_FEE_TOKEN_ADDRESS=0x8a72996faa56747354a0D9fE817974857055Bd77
+# Plugin addresses
+NEXT_PUBLIC_CRISP_VOTING_PLUGIN_ADDRESS=0x89ECeD004714779C7b6B3bD72634D2B7A132E1C0
+
+NEXT_PUBLIC_SECONDS_PER_BLOCK=12
+
+# The block number where the plugin was deployed (used to speed up event queries)
+NEXT_PUBLIC_PLUGIN_DEPLOYMENT_BLOCK=0
+
+# Enclave
+NEXT_PUBLIC_CRISP_SERVER_URL="http://127.0.0.1:4000"
+
+# Network and services
+NEXT_PUBLIC_CHAIN_NAME=sepolia
+NEXT_PUBLIC_WEB3_ENDPOINT=https://eth-sepolia.g.alchemy.com/v2/
+
+NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID="YOUR WALLET CONNECT PROJECT ID"
+
+NEXT_PUBLIC_IPFS_ENDPOINTS="https://domain1/api,https://domain2/api/v0"
+NEXT_PUBLIC_PINATA_JWT="..."
 ```
 
-## Need Help? 🆘
-
-Stuck on something? Our community is here to help! Join our [Discord channel](https://discord.gg/aragonorg) for support, advice, or just to share your awesome plugin creations with fellow Aragon enthusiasts.
+- `NEXT_PUBLIC_DAO_ADDRESS` - The address of the DAO where the CRISP Voting plugin is installed.
+- `NEXT_PUBLIC_TOKEN_ADDRESS` - The address of the ERC20 token used for voting power in the DAO.
+- `NEXT_PUBLIC_ENCLAVE_FEE_TOKEN_ADDRESS` - The address of the ERC20 token used to pay fees to the Enclave network.
+- `NEXT_PUBLIC_CRISP_VOTING_PLUGIN_ADDRESS` - The address of the CRISP Voting plugin contract.
+- `NEXT_PUBLIC_SECONDS_PER_BLOCK` - Average number of seconds per block for the specified network. (Ethereum and Sepolia have 12 seconds)
+- `NEXT_PUBLIC_PLUGIN_DEPLOYMENT_BLOCK` - The block number where the CRISP Voting plugin was deployed. This helps speed up event queries.
+- `NEXT_PUBLIC_CRISP_SERVER_URL` - The URL of the Enclave server to manage CRISP and Enclave data such as round details, encryption public key and more.
+- `NEXT_PUBLIC_CHAIN_NAME` - The name of the Ethereum network you are using (e.g., mainnet, sepolia, goerli).
+- `NEXT_PUBLIC_WEB3_ENDPOINT` - An Ethereum node endpoint for the specified network. You can use services like [Alchemy](https://www.alchemy.com/) or [Infura](https://infura.io/) to get a free endpoint. This helps speed up the loading of blockchain data such as proposal details.
+- `NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID` can be obtained by signing up at [WalletConnect](https://walletconnect.com/) and creating a new project.
+- `NEXT_PUBLIC_IPFS_ENDPOINTS` and `NEXT_PUBLIC_PINATA_JWT` are needed to ensure we can save proposal details on IPFS
 
 ## License 📜
 
