@@ -15,6 +15,7 @@ export interface VoteCardProps {
   votingStep: VotingStep;
   lastActiveStep: VotingStep | null;
   stepMessage: string;
+  isCommitteeReady: boolean;
   onClickVote: (voteOption: VoteOption, isMasking?: boolean) => void;
 }
 
@@ -27,6 +28,7 @@ export const VoteCard = ({
   votingStep,
   lastActiveStep,
   stepMessage,
+  isCommitteeReady,
 }: VoteCardProps) => {
   const [voteOption, setVoteOption] = useState<VoteOption | null>(null);
 
@@ -50,6 +52,11 @@ export const VoteCard = ({
         {voteStartDate &&
           voteStartDate > Math.round(Date.now() / 1000) &&
           `The vote will start on ${unixTimestampToDate(voteStartDate)}`}
+        {voteStartDate && voteStartDate < Math.round(Date.now() / 1000) && !isCommitteeReady && (
+          <p className="text-md text-warning-500">
+            The ciphernode committee is being formed. Voting will be available once the committee is ready.
+          </p>
+        )}
         <div className="mt-4 flex flex-row gap-x-1">
           <Button
             onClick={() => {

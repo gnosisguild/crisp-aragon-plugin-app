@@ -20,10 +20,12 @@ export const useProposalVariantStatus = (proposal: Proposal) => {
       setStatus({ variant: "primary", label: "Executed" });
     } else if (totalVotes < minVotingPower) {
       setStatus({ variant: "critical", label: "Low turnout" });
-    } else if (proposal.tally.yes > proposal.tally.no) {
+    } else if (proposal.tally.yes > proposal.tally.no && proposal.actions.length > 0) {
       setStatus({ variant: "success", label: "Executable" });
+    } else if (proposal.tally.yes > proposal.tally.no && proposal.actions.length === 0) {
+      setStatus({ variant: "success", label: "Passed" });
     } else if (proposal.tally.no > proposal.tally.yes) {
-      setStatus({ variant: "critical", label: "Defeated" });
+      setStatus({ variant: "critical", label: "Rejected" });
     }
   }, [
     proposal,
@@ -54,8 +56,10 @@ export const useProposalStatus = (proposal: Proposal) => {
       setStatus(ProposalStatus.EXECUTED);
     } else if (totalVotes < minVotingPower) {
       setStatus(ProposalStatus.FAILED);
-    } else if (proposal.tally.yes > proposal.tally.no) {
+    } else if (proposal.tally.yes > proposal.tally.no && proposal.actions.length > 0) {
       setStatus(ProposalStatus.EXECUTABLE);
+    } else if (proposal.tally.yes > proposal.tally.no && proposal.actions.length === 0) {
+      setStatus(ProposalStatus.ACCEPTED);
     } else if (proposal.tally.no > proposal.tally.yes) {
       setStatus(ProposalStatus.REJECTED);
     } else {

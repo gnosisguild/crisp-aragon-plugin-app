@@ -15,9 +15,10 @@ interface IResult {
 interface VoteResultCardProps {
   results?: IResult[];
   proposalId: bigint;
+  isSignalling?: boolean;
 }
 
-export const VoteResultCard = ({ results, proposalId }: VoteResultCardProps) => {
+export const VoteResultCard = ({ results, proposalId, isSignalling }: VoteResultCardProps) => {
   const { executeProposal, canExecute, isConfirming: isConfirmingExecution } = useProposalExecute(proposalId);
 
   const [isVisible, setIsVisible] = useState(false);
@@ -135,7 +136,7 @@ export const VoteResultCard = ({ results, proposalId }: VoteResultCardProps) => 
           </div>
         </div>
         <div className={`mt-4 text-center`}>
-          {canExecute && (
+          {canExecute && !isSignalling && (
             <Button size="lg" variant={"success"} disabled={isConfirmingExecution} onClick={executeProposal}>
               Execute proposal
             </Button>
