@@ -9,8 +9,8 @@ import { PUB_CRISP_VOTING_PLUGIN_ADDRESS, PUB_DEPLOYMENT_BLOCK } from "@/constan
 import { MainSection } from "@/components/layout/main-section";
 import { MissingContentView } from "@/components/MissingContentView";
 import { ProposalCreatedEvent } from "../hooks/useProposal";
-import { RawAction } from "@/utils/types";
-import { Hex } from "viem";
+import type { RawAction } from "@/utils/types";
+import type { Hex } from "viem";
 import { publicClient } from "../utils/client";
 
 const DEFAULT_PAGE_SIZE = 6;

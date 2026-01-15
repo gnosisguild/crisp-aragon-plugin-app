@@ -56,7 +56,7 @@ export function useProposal(proposalId: bigint, autoRefresh = false) {
 
   useEffect(() => {
     if (autoRefresh) refetchTally();
-  }, [blockNumber]);
+  }, [blockNumber, autoRefresh]);
 
   useEffect(() => {
     if (autoRefresh) proposalRefetch();

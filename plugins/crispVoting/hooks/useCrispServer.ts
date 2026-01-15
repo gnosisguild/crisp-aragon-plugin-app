@@ -2,7 +2,7 @@ import { PUB_CRISP_SERVER_URL, PUB_TOKEN_ADDRESS } from "@/constants";
 import { useCallback, useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
 import type { EligibleVoter, IRoundDetailsResponse, VoteData, VotingStep } from "../utils/types";
-import { encodeSolidityProof, generatePublicKey, SIGNATURE_MESSAGE, SIGNATURE_MESSAGE_HASH } from "@crisp-e3/sdk";
+import { encodeSolidityProof } from "@crisp-e3/sdk";
 import { iVotesAbi } from "../artifacts/iVotes";
 import { publicClient } from "../utils/client";
 import { useAlerts } from "@/context/Alerts";

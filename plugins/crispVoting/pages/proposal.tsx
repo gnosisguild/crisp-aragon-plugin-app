@@ -15,8 +15,11 @@ import { AddressText } from "@/components/text/address";
 import Link from "next/link";
 import { useCanVote } from "../hooks/useCanVote";
 import { VoteCard } from "../components/vote/voteCard";
-import { useCrispServer } from "../hooks/useCrispServer";
+import { CRISP_SERVER_STATE_LITE_ROUTE, useCrispServer } from "../hooks/useCrispServer";
 import { VoteResultCard } from "../components/vote/voteResultCard";
+import { useEffect, useState } from "react";
+import { PUB_CRISP_SERVER_URL } from "@/constants";
+import type { IRoundDetailsResponse } from "../utils/types";
 
 const ZERO = BigInt(0);
 const VOTE_YES_VALUE = 0;
@@ -28,11 +31,41 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
   const { isLoading, error, postVote, votingStep, lastActiveStep, stepMessage } = useCrispServer();
   const { proposal, status: proposalFetchStatus } = useProposal(proposalIdx);
 
+  const [isCommitteeReady, setIsCommitteeReady] = useState<boolean>(false);
   const canVote = useCanVote(proposalIdx);
   const { balance, delegatesTo } = useTokenVotes(address);
 
   const showProposalLoading = getShowProposalLoading(proposal, proposalFetchStatus);
   const proposalStatus = useProposalStatus(proposal!);
+
+  const checkIfRoundIsReady = async (e3Id: bigint): Promise<boolean> => {
+    const response = await fetch(`${PUB_CRISP_SERVER_URL}/${CRISP_SERVER_STATE_LITE_ROUTE}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ round_id: Number(e3Id.toString()) }),
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = (await response.json()) as IRoundDetailsResponse;
+
+    return data.committee_public_key.length > 0;
+  };
+
+  useEffect(() => {
+    const _chechkIfRoundIsReady = async () => {
+      if (proposal && proposal.e3Id) {
+        const ready = await checkIfRoundIsReady(proposal.e3Id);
+        setIsCommitteeReady(ready);
+      }
+    };
+
+    _chechkIfRoundIsReady().catch();
+  }, [proposal]);
 
   const onVote = (voteOption: number | null) => {
     if (!proposal) {
@@ -83,7 +116,9 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
               error={canVote === false ? "You cannot vote on this proposal" : undefined}
               voteStartDate={Number(proposal?.parameters.startDate)}
               voteEndDate={Number(proposal?.parameters.endDate)}
+              isCommitteeReady={isCommitteeReady}
               disabled={
+                isCommitteeReady === false ||
                 canVote === false ||
                 proposalStatus !== ProposalStatus.ACTIVE ||
                 Number(proposal?.parameters.startDate) > Math.round(Date.now() / 1000)
@@ -100,6 +135,7 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
           <div className="flex flex-col gap-y-6 md:w-[33%]">
             {proposalStatus !== ProposalStatus.ACTIVE && (
               <VoteResultCard
+                isSignalling={proposal.actions && proposal.actions.length === 0}
                 proposalId={proposalIdx}
                 results={[
                   { option: "yes", value: String(proposal.tally.yes || ZERO) },
