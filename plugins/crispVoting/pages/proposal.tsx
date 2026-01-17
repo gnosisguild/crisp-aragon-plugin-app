@@ -132,7 +132,6 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
                 stepMessage={stepMessage}
               />
             )}
-
             <p>{error}</p>
           </div>
           <div className="flex flex-col gap-y-6 md:w-[33%]">

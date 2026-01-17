@@ -11,14 +11,14 @@ export default function StandardHome() {
   const { open } = useWeb3Modal();
 
   return (
-    <MainSection narrow>
+    <MainSection narrow={true}>
       <Card>
         <h1 className="line-clamp-1 flex flex-1 shrink-0 text-2xl font-normal leading-tight text-neutral-800 md:text-3xl">
           Welcome to {PUB_APP_NAME}
         </h1>
         <p className="text-md text-neutral-400">
-          A beaufitul DAO experience in a simple template that you can customize. Get started by connecting your wallet
-          and selecting a plugin from the menu.
+          A beaufitul DAO experience with Private voting enabled. Get started by connecting your wallet and selecting
+          CRISP Voting from the menu.
         </p>
         <div className="">
           <IllustrationHuman className="mx-auto mb-10 max-w-96" body="BLOCKS" expression="SMILE_WINK" hairs="CURLY" />
