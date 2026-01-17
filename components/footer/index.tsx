@@ -1,4 +1,4 @@
-import { PUB_APP_NAME, PUB_BLOG_URL, PUB_FORUM_URL, PUB_PROJECT_URL } from "@/constants";
+import { PUB_APP_NAME, PUB_BLOG_URL, PUB_SOCIALS_URL as PUB_SOCIALS_URL, PUB_PROJECT_URL } from "@/constants";
 
 export const Footer = () => {
   return (
@@ -56,8 +56,10 @@ export const Footer = () => {
             </a>
           </li>
           <li className="group py-4 md:py-0">
-            <a className="overflow-hidden" href={PUB_FORUM_URL} target="_blank">
-              <span className="line-clamp-1 leading-tight text-neutral-500 group-hover:text-neutral-800">Forum</span>
+            <a className="overflow-hidden" href={PUB_SOCIALS_URL} target="_blank">
+              <span className="line-clamp-1 leading-tight text-neutral-500 group-hover:text-neutral-800">
+                X (Twitter)
+              </span>
             </a>
           </li>
         </ul>

@@ -91,10 +91,10 @@ export const VoteResultCard = ({ results, proposalId, isSignalling }: VoteResult
       <div
         className={`transition-all delay-100 duration-1000 ${isVisible ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
       >
-        <div className="shadow-2xl bg-white/80 border-0">
+        <div className="shadow-2xl bg-white/80 border-0 text-center">
           <div className="flex flex-col gap-2">
             <div className="relative">
-              <div className="text-left">
+              <div className="text-center">
                 <div
                   className={classNames(`text-lg`, textClass(winner))}
                   style={{
@@ -108,8 +108,8 @@ export const VoteResultCard = ({ results, proposalId, isSignalling }: VoteResult
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
-              <div className={`p-4 text-center ${bgClass("yes")} rounded-xl border`}>
+            <div className="grid grid-cols-1 gap-2 text-center lg:grid-cols-2">
+              <div className={`p-4 text-center ${bgClass("yes")}`}>
                 <div
                   className={`font-bold text-2xl ${textClass("yes")}`}
                   style={{
@@ -121,7 +121,7 @@ export const VoteResultCard = ({ results, proposalId, isSignalling }: VoteResult
                 <div className={`text-sm ${textClass("yes")}`}>Yes</div>
               </div>
 
-              <div className={`p-4 text-center ${bgClass("no")} rounded-xl border`}>
+              <div className={`p-4 text-center ${bgClass("no")}`}>
                 <div
                   className={`font-bold text-2xl ${textClass("no")}`}
                   style={{

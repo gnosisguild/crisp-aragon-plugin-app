@@ -112,24 +112,26 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
               />
             </If>
             <ProposalActions actions={proposal.actions} />
-            <VoteCard
-              error={canVote === false ? "You cannot vote on this proposal" : undefined}
-              voteStartDate={Number(proposal?.parameters.startDate)}
-              voteEndDate={Number(proposal?.parameters.endDate)}
-              isCommitteeReady={isCommitteeReady}
-              disabled={
-                isCommitteeReady === false ||
-                canVote === false ||
-                proposalStatus !== ProposalStatus.ACTIVE ||
-                Number(proposal?.parameters.startDate) > Math.round(Date.now() / 1000)
-              }
-              isLoading={isLoading}
-              onClickVote={onVote}
-              proposalId={proposalIdx}
-              votingStep={votingStep}
-              lastActiveStep={lastActiveStep}
-              stepMessage={stepMessage}
-            />
+            {proposalStatus === ProposalStatus.ACTIVE && (
+              <VoteCard
+                error={canVote === false ? "You cannot vote on this proposal" : undefined}
+                voteStartDate={Number(proposal?.parameters.startDate)}
+                voteEndDate={Number(proposal?.parameters.endDate)}
+                isCommitteeReady={isCommitteeReady}
+                disabled={
+                  isCommitteeReady === false ||
+                  canVote === false ||
+                  proposalStatus !== ProposalStatus.ACTIVE ||
+                  Number(proposal?.parameters.startDate) > Math.round(Date.now() / 1000)
+                }
+                isLoading={isLoading}
+                onClickVote={onVote}
+                proposalId={proposalIdx}
+                votingStep={votingStep}
+                lastActiveStep={lastActiveStep}
+                stepMessage={stepMessage}
+              />
+            )}
             <p>{error}</p>
           </div>
           <div className="flex flex-col gap-y-6 md:w-[33%]">
