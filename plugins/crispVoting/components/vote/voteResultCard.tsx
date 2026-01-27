@@ -116,7 +116,7 @@ export const VoteResultCard = ({ results, proposalId, isSignalling }: VoteResult
                     fontWeight: winner === "yes" ? 700 : winner === "no" ? 700 : 400,
                   }}
                 >
-                  {yesPercentage}%
+                  {yesPercentage.toFixed(2)}%
                 </div>
                 <div className={`text-sm ${textClass("yes")}`}>Yes</div>
               </div>
@@ -128,7 +128,7 @@ export const VoteResultCard = ({ results, proposalId, isSignalling }: VoteResult
                     fontWeight: winner === "no" ? 700 : winner === "yes" ? 700 : 400,
                   }}
                 >
-                  {noPercentage}%
+                  {noPercentage.toFixed(2)}%
                 </div>
                 <div className={`text-sm ${textClass("no")}`}>No</div>
               </div>
