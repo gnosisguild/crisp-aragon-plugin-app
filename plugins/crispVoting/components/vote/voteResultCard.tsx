@@ -1,11 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import classNames from "classnames";
-import { Button, Card } from "@aragon/ods";
+import { Button, Card, Heading } from "@aragon/ods";
 import { useProposalExecute } from "../../hooks/useProposalExecute";
-
-type WinnerType = "yes" | "no" | "tie";
 
 interface IResult {
   option: string;
@@ -18,130 +15,163 @@ interface VoteResultCardProps {
   isSignalling?: boolean;
 }
 
+const OPTION_COLORS = [
+  "#22c55e", // green  - yes / option 1
+  "#ef4444", // red    - no / option 2
+  "#a78bfa", // violet - abstain / option 3
+  "#3b82f6", // blue
+  "#f59e0b", // amber
+  "#06b6d4", // cyan
+  "#f472b6", // pink
+  "#84cc16", // lime
+];
+
+function getColor(index: number): string {
+  return OPTION_COLORS[index % OPTION_COLORS.length];
+}
+
 export const VoteResultCard = ({ results, proposalId, isSignalling }: VoteResultCardProps) => {
   const { executeProposal, canExecute, isConfirming: isConfirmingExecution } = useProposalExecute(proposalId);
-
   const [isVisible, setIsVisible] = useState(false);
 
-  const yes = results ? Number(results[0].value) : 0;
-  const no = results ? Number(results[1].value) : 0;
+  const parsedResults = useMemo(() => {
+    if (!results) return [];
+    return results.map((r, idx) => ({
+      option: r.option,
+      value: Number(r.value),
+      index: idx,
+    }));
+  }, [results]);
 
-  const total = yes + no;
+  const total = useMemo(() => {
+    return parsedResults.reduce((sum, r) => sum + r.value, 0);
+  }, [parsedResults]);
 
-  const yesPercentage = total > 0 ? (yes / total) * 100 : 0;
-  const noPercentage = total > 0 ? (no / total) * 100 : 0;
+  const resultsWithPercentage = useMemo(() => {
+    return parsedResults
+      .map((r) => ({
+        ...r,
+        percentage: total > 0 ? (r.value / total) * 100 : 0,
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [parsedResults, total]);
 
-  const winner = useMemo<WinnerType>(() => {
-    if (yes > no) return "yes";
-    if (no > yes) return "no";
-    return "tie";
-  }, [yes, no]);
-
-  const config = useMemo(() => {
-    switch (winner) {
-      case "yes":
-        return {
-          percentage: yesPercentage,
-        };
-      case "no":
-        return {
-          percentage: noPercentage,
-        };
-      case "tie":
-        return {
-          percentage: 50,
-        };
-    }
-  }, [noPercentage, winner, yesPercentage]);
+  const winner = useMemo(() => {
+    if (total === 0) return null;
+    const sorted = [...parsedResults].sort((a, b) => b.value - a.value);
+    if (sorted.length < 2) return sorted[0] ?? null;
+    // tie check
+    if (sorted[0].value === sorted[1].value) return null;
+    return sorted[0];
+  }, [parsedResults, total]);
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
-  const votingTextClasses = {
-    yes: "text-voting-yes",
-    no: "text-voting-no",
-    abstain: "text-voting-abstain",
-    tie: "text-voting-slate",
-  };
-
-  const votingBgClasses = {
-    yes: "bg-voting-yes/10 border-voting-yes",
-    no: "bg-voting-no/10 border-voting-no",
-    abstain: "bg-voting-abstain/10 border-voting-abstain",
-    tie: "bg-voting-slate/10 border-voting-slate",
-  };
-
-  const textClass = (status: WinnerType) => {
-    if (status === winner) return votingTextClasses[winner];
-    return votingTextClasses.abstain;
-  };
-
-  const bgClass = (status: WinnerType) => {
-    if (status === winner) return votingBgClasses[winner];
-    return votingBgClasses.abstain;
-  };
-
-  if (!config) {
+  if (!results || results.length === 0) {
     return null;
   }
 
   return (
-    <Card className="flex flex-col gap-y-4 p-6 shadow-neutral">
-      <div
-        className={`transition-all delay-100 duration-1000 ${isVisible ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
-      >
-        <div className="shadow-2xl bg-white/80 border-0 text-center">
-          <div className="flex flex-col gap-2">
-            <div className="relative">
-              <div className="text-center">
-                <div
-                  className={classNames(`text-lg`, textClass(winner))}
-                  style={{
-                    fontWeight: 700,
-                    color: winner === "tie" ? "#EAB308" : winner === "yes" ? "#10B981" : "#EF4444",
-                  }}
-                >
-                  {config?.percentage.toFixed(0)}%{" "}
-                  {winner === "yes" ? "Approval" : winner === "no" ? "Opposition" : "Split"}
-                </div>
-              </div>
-            </div>
+    <Card className="flex flex-col gap-y-5 p-6 shadow-neutral">
+      <div className={`transition-all duration-500 ${isVisible ? "opacity-100" : "opacity-0"}`}>
+        {/* Header */}
+        <Heading size="h3">Results</Heading>
 
-            <div className="grid grid-cols-1 gap-2 text-center lg:grid-cols-2">
-              <div className={`p-4 text-center ${bgClass("yes")}`}>
+        <div className="mt-4 flex flex-col gap-3">
+          {/* Stacked bar */}
+          {total > 0 ? (
+            <div className="flex h-3 w-full overflow-hidden rounded-full bg-neutral-100">
+              {resultsWithPercentage.map((result) => (
                 <div
-                  className={`font-bold text-2xl ${textClass("yes")}`}
+                  key={result.index}
+                  className="transition-all duration-700 ease-out first:rounded-l-full last:rounded-r-full"
                   style={{
-                    fontWeight: winner === "yes" ? 700 : winner === "no" ? 700 : 400,
+                    width: `${Math.max(result.percentage, 0.5)}%`,
+                    backgroundColor: getColor(result.index),
                   }}
-                >
-                  {yesPercentage.toFixed(2)}%
-                </div>
-                <div className={`text-sm ${textClass("yes")}`}>Yes</div>
-              </div>
-
-              <div className={`p-4 text-center ${bgClass("no")}`}>
-                <div
-                  className={`font-bold text-2xl ${textClass("no")}`}
-                  style={{
-                    fontWeight: winner === "no" ? 700 : winner === "yes" ? 700 : 400,
-                  }}
-                >
-                  {noPercentage.toFixed(2)}%
-                </div>
-                <div className={`text-sm ${textClass("no")}`}>No</div>
-              </div>
+                />
+              ))}
             </div>
+          ) : (
+            <div className="h-3 w-full rounded-full bg-neutral-100" />
+          )}
+
+          {/* Option rows */}
+          <div className="flex flex-col gap-1">
+            {resultsWithPercentage.map((result) => {
+              const isWinner = winner?.index === result.index;
+              return (
+                <div
+                  key={result.index}
+                  className="flex items-center justify-between gap-3 rounded-lg px-3 py-2"
+                  style={{
+                    backgroundColor: isWinner ? `${getColor(result.index)}08` : "transparent",
+                  }}
+                >
+                  <div className="flex items-center gap-2.5 overflow-hidden">
+                    <div
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: getColor(result.index) }}
+                    />
+                    <span
+                      className="truncate text-sm"
+                      style={{
+                        fontWeight: isWinner ? 600 : 400,
+                        color: isWinner ? getColor(result.index) : "#6b7280",
+                      }}
+                    >
+                      {result.option}
+                    </span>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3 text-right">
+                    <span className="text-xs tabular-nums" style={{ color: "#9ca3af" }}>
+                      {result.value.toLocaleString()}
+                    </span>
+                    <span
+                      className="min-w-[3rem] text-sm font-semibold tabular-nums"
+                      style={{
+                        color: isWinner ? getColor(result.index) : "#6b7280",
+                      }}
+                    >
+                      {result.percentage.toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Footer */}
+          <div className="mt-1 border-t border-neutral-100 pt-3 text-center">
+            {total === 0 ? (
+              <span className="font-medium text-xs text-neutral-400">No votes were cast</span>
+            ) : winner ? (
+              <span className="font-medium text-xs" style={{ color: getColor(winner.index) }}>
+                {winner.option} won with{" "}
+                {resultsWithPercentage.find((r) => r.index === winner.index)?.percentage.toFixed(1)}%
+              </span>
+            ) : (
+              <span className="font-medium text-xs text-neutral-400">Tied — no clear winner</span>
+            )}
           </div>
         </div>
-        <div className={`mt-4 text-center`}>
-          {canExecute && !isSignalling && (
-            <Button size="lg" variant={"success"} disabled={isConfirmingExecution} onClick={executeProposal}>
+
+        {/* Execute Button */}
+        {canExecute && !isSignalling && (
+          <div className="mt-4">
+            <Button
+              className="w-full"
+              size="lg"
+              variant="success"
+              disabled={isConfirmingExecution}
+              onClick={executeProposal}
+            >
               Execute proposal
             </Button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </Card>
   );

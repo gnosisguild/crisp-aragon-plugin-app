@@ -56,7 +56,7 @@ export function useProposal(proposalId: bigint, autoRefresh = false) {
 
   useEffect(() => {
     if (autoRefresh) refetchTally();
-  }, [blockNumber, autoRefresh]);
+  }, [blockNumber, autoRefresh, refetchTally]);
 
   useEffect(() => {
     if (autoRefresh) proposalRefetch();
@@ -89,14 +89,7 @@ export function useProposal(proposalId: bigint, autoRefresh = false) {
     } catch (err) {
       console.error("Could not fetch the proposal details", err);
     }
-  }, [
-    proposalRaw?.tally.yes,
-    proposalRaw?.tally.no,
-    !!publicClient,
-    proposalId,
-    proposalRaw?.parameters.snapshotBlock,
-    proposalResult,
-  ]);
+  }, [!!publicClient, proposalId, proposalRaw?.parameters.snapshotBlock, proposalResult]);
 
   // JSON metadata
   const {
@@ -134,7 +127,7 @@ function arrangeProposalData(
     active: proposalData.parameters.endDate > BigInt(Math.floor(Date.now() / 1000)),
     executed: proposalData.executed,
     parameters: proposalData.parameters,
-    tally: tally || proposalData.tally,
+    tally: tally ? proposalData.tally : [],
     allowFailureMap: proposalData.allowFailureMap,
     creator: creationEvent?.creator ?? "",
     title: metadata?.title ?? "",
@@ -142,5 +135,7 @@ function arrangeProposalData(
     description: metadata?.description ?? "",
     resources: metadata?.resources ?? [],
     e3Id: proposalData.e3Id,
+    options: metadata?.options ?? ["Yes", "No"],
+    numOptions: metadata?.options?.length ?? 2,
   };
 }

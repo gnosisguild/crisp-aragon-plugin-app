@@ -19,10 +19,7 @@ export type ProposalParameters = {
   minVotingPower: bigint;
 };
 
-export type Tally = {
-  yes: bigint;
-  no: bigint;
-};
+export type Tally = bigint[];
 
 export type MetadataResource = {
   name: string;
@@ -42,6 +39,8 @@ export type Proposal = {
   description: string;
   resources: IProposalResource[];
   e3Id: bigint;
+  options: string[];
+  numOptions: number;
 };
 
 export type ProposalMetadata = {
@@ -91,12 +90,6 @@ export type VotesReceivedResponse = {
   args: VotesReceivedEvent[];
 };
 
-export enum VoteOption {
-  Yes,
-  No,
-  Mask,
-}
-
 /**
  * Interface representing the details of a specific round returned by the CRISP server
  */
@@ -114,6 +107,7 @@ export interface IRoundDetailsResponse {
   emojis: [string, string];
   token_address: string;
   balance_threshold: string;
+  num_options: string;
 }
 
 export type VotingStep = "idle" | "signing" | "generating_proof" | "broadcasting" | "confirming" | "complete" | "error";
@@ -129,4 +123,9 @@ export interface VoteData {
   balance: bigint;
   signature: string;
   messageHash: `0x${string}`;
+}
+
+export enum CreditsMode {
+  CONSTANT,
+  CUSTOM,
 }

@@ -66,16 +66,6 @@ export const CrispVotingAbi = [
   },
   {
     type: "function",
-    name: "decodeLittleEndianU64",
-    inputs: [
-      { name: "data", type: "bytes", internalType: "bytes" },
-      { name: "offset", type: "uint256", internalType: "uint256" },
-    ],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
     name: "enclave",
     inputs: [],
     outputs: [{ name: "", type: "address", internalType: "contract IEnclave" }],
@@ -128,20 +118,19 @@ export const CrispVotingAbi = [
             type: "tuple",
             internalType: "struct ICrispVoting.ProposalParameters",
             components: [
+              { name: "numOptions", type: "uint256", internalType: "uint256" },
               { name: "startDate", type: "uint64", internalType: "uint64" },
               { name: "endDate", type: "uint64", internalType: "uint64" },
               { name: "snapshotBlock", type: "uint256", internalType: "uint256" },
               { name: "minVotingPower", type: "uint256", internalType: "uint256" },
+              { name: "minParticipation", type: "uint256", internalType: "uint256" },
             ],
           },
           {
             name: "tally",
             type: "tuple",
             internalType: "struct ICrispVoting.TallyResults",
-            components: [
-              { name: "yes", type: "uint256", internalType: "uint256" },
-              { name: "no", type: "uint256", internalType: "uint256" },
-            ],
+            components: [{ name: "counts", type: "uint256[]", internalType: "uint256[]" }],
           },
           {
             name: "actions",
@@ -178,10 +167,7 @@ export const CrispVotingAbi = [
         name: "",
         type: "tuple",
         internalType: "struct ICrispVoting.TallyResults",
-        components: [
-          { name: "yes", type: "uint256", internalType: "uint256" },
-          { name: "no", type: "uint256", internalType: "uint256" },
-        ],
+        components: [{ name: "counts", type: "uint256[]", internalType: "uint256[]" }],
       },
     ],
     stateMutability: "view",
@@ -208,6 +194,13 @@ export const CrispVotingAbi = [
     name: "getVotingToken",
     inputs: [],
     outputs: [{ name: "", type: "address", internalType: "contract IVotesUpgradeable" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getWinningOption",
+    inputs: [{ name: "_proposalId", type: "uint256", internalType: "uint256" }],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
@@ -438,6 +431,11 @@ export const CrispVotingAbi = [
   },
   { type: "error", name: "DelegateCallFailed", inputs: [] },
   { type: "error", name: "FunctionDeprecated", inputs: [] },
+  {
+    type: "error",
+    name: "InvalidOptionCount",
+    inputs: [{ name: "numOptions", type: "uint256", internalType: "uint256" }],
+  },
   {
     type: "error",
     name: "InvalidTargetConfig",

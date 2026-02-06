@@ -34,6 +34,7 @@ export type ProposalMetadata = {
   summary: string;
   description: string;
   resources: IProposalResource[];
+  options: string[];
 };
 
 export type IProposalResource = {
