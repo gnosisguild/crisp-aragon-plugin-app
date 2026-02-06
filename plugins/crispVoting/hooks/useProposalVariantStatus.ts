@@ -43,7 +43,7 @@ function isRejected(tally: bigint[], numOptions: number): boolean {
 }
 
 export const useProposalVariantStatus = (proposal: Proposal) => {
-  const [status, setStatus] = useState({ variant: "", label: "" });
+  const [status, setStatus] = useState({ variant: "neutral", label: "Pending" });
   const { tokenSupply: totalSupply } = useToken();
 
   useEffect(() => {
@@ -58,6 +58,8 @@ export const useProposalVariantStatus = (proposal: Proposal) => {
       setStatus({ variant: "info", label: "Active" });
     } else if (proposal?.executed) {
       setStatus({ variant: "primary", label: "Executed" });
+    } else if (!proposal?.isTallied) {
+      setStatus({ variant: "info", label: "Tallying" });
     } else if (totalVotes === 0n) {
       setStatus({ variant: "critical", label: "Low turnout" });
     } else if (totalVotes < minVotingPower) {
@@ -71,20 +73,14 @@ export const useProposalVariantStatus = (proposal: Proposal) => {
     } else {
       setStatus({ variant: "critical", label: "Low turnout" });
     }
-  }, [
-    proposal,
-    proposal?.tally,
-    proposal?.active,
-    proposal?.executed,
-    proposal?.parameters?.minVotingPower,
-    totalSupply,
-  ]);
+  }, [proposal, totalSupply]);
 
   return status;
 };
 
 export const useProposalStatus = (proposal: Proposal) => {
-  const [status, setStatus] = useState<ProposalStatus>();
+  const [status, setStatus] = useState<ProposalStatus>(ProposalStatus.PENDING);
+
   const { tokenSupply: totalSupply } = useToken();
 
   useEffect(() => {
@@ -99,6 +95,8 @@ export const useProposalStatus = (proposal: Proposal) => {
       setStatus(ProposalStatus.ACTIVE);
     } else if (proposal?.executed) {
       setStatus(ProposalStatus.EXECUTED);
+    } else if (!proposal?.isTallied) {
+      setStatus(ProposalStatus.PENDING);
     } else if (totalVotes === 0n) {
       setStatus(ProposalStatus.FAILED);
     } else if (totalVotes < minVotingPower) {
@@ -112,14 +110,7 @@ export const useProposalStatus = (proposal: Proposal) => {
     } else {
       setStatus(ProposalStatus.PENDING);
     }
-  }, [
-    proposal,
-    proposal?.tally,
-    proposal?.active,
-    proposal?.executed,
-    proposal?.parameters?.minVotingPower,
-    totalSupply,
-  ]);
+  }, [proposal, totalSupply]);
 
   return status;
 };

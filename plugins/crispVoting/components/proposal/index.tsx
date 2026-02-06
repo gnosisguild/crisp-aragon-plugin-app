@@ -18,7 +18,9 @@ export default function ProposalCard(props: ProposalInputs) {
   const { proposal, status: proposalFetchStatus } = useProposal(props.proposalId);
 
   const { symbol: tokenSymbol } = useToken();
+
   const proposalStatus = useProposalStatus(proposal!);
+
   const showLoading = getShowProposalLoading(proposal, proposalFetchStatus);
 
   const hasVoted = false;

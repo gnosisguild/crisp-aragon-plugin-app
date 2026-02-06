@@ -167,8 +167,7 @@ export function useCrispServer(): CrispServerState {
       functionName: "decimals",
     });
 
-    // const adjustedBalance = balance / 10n ** BigInt(decimals / 2);
-    const adjustedBalance = balance / 10n ** BigInt(decimals);
+    const adjustedBalance = balance / 10n ** BigInt(decimals / 2);
 
     const vote = Array.from({ length: numOptions }, (_, i) => (i === Number(voteOption) ? adjustedBalance : 0n));
 
@@ -189,8 +188,6 @@ export function useCrispServer(): CrispServerState {
         return;
       }
 
-      console.log(`Starting to post ${isAMask ? "masking" : "vote"} for round ${e3Id} with option ${voteOption}`);
-
       addAlert(`${isAMask ? "Masking" : "Vote"} generation started! Please do not leave the current page.`, {
         timeout: 3000,
         type: "info",
@@ -210,8 +207,6 @@ export function useCrispServer(): CrispServerState {
           Number.parseInt(roundState.num_options)
         );
       }
-
-      console.log("voteData", voteData);
 
       // get the merkle leaves
       const merkleLeaves = await getTokenHoldersHashes(e3Id);

@@ -1,4 +1,4 @@
-import { ProposalStatus, TagVariant } from "@aragon/ods";
+import { ProposalStatus, type TagVariant } from "@aragon/ods";
 
 export function getTagVariantFromStatus(status: ProposalStatus | undefined): TagVariant {
   switch (status) {

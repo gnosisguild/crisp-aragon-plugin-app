@@ -41,6 +41,7 @@ export type Proposal = {
   e3Id: bigint;
   options: string[];
   numOptions: number;
+  isTallied: boolean;
 };
 
 export type ProposalMetadata = {
