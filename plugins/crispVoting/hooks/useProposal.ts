@@ -145,6 +145,8 @@ function arrangeProposalData(
 ): Proposal | null {
   if (!proposalData) return null;
 
+  const hasVotes = tally.some((v) => v > 0n);
+
   return {
     actions: proposalData.actions,
     active: proposalData.parameters.endDate > BigInt(Math.floor(Date.now() / 1000)),
@@ -160,6 +162,6 @@ function arrangeProposalData(
     e3Id: proposalData.e3Id,
     options: metadata?.options ?? ["Yes", "No"],
     numOptions: metadata?.options?.length ?? 2,
-    isTallied,
+    isTallied: hasVotes || isTallied,
   };
 }
