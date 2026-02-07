@@ -1,6 +1,17 @@
-import { Button, IconType, InputText, TextAreaRichText, Tag, InputDate, InputTime } from "@aragon/ods";
-import React, { ReactNode, useState } from "react";
-import { RawAction } from "@/utils/types";
+import {
+  Button,
+  IconType,
+  InputText,
+  TextAreaRichText,
+  Tag,
+  InputDate,
+  InputTime,
+  DropdownContainer,
+  DropdownItem,
+  InputNumber,
+} from "@aragon/ods";
+import React, { type ReactNode, useState } from "react";
+import type { RawAction } from "@/utils/types";
 import { Else, ElseIf, If, Then } from "@/components/if";
 import { MainSection } from "@/components/layout/main-section";
 import { useCreateProposal } from "../hooks/useCreateProposal";
@@ -8,12 +19,13 @@ import { useAccount } from "wagmi";
 import { useCanCreateProposal } from "../hooks/useCanCreateProposal";
 import { MissingContentView } from "@/components/MissingContentView";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
-import { Address } from "viem";
-import { NewActionDialog, NewActionType } from "@/components/dialogs/NewActionDialog";
+import type { Address } from "viem";
+import { NewActionDialog, type NewActionType } from "@/components/dialogs/NewActionDialog";
 import { AddActionCard } from "@/components/cards/AddActionCard";
 import { ProposalActions } from "@/components/proposalActions/proposalActions";
 import { downloadAsFile } from "@/utils/download-as-file";
 import { encodeActionsAsJson } from "@/utils/json-actions";
+import { CreditsMode } from "../utils/types";
 
 export default function Create() {
   const { address: selfAddress, isConnected } = useAccount();
@@ -40,6 +52,14 @@ export default function Create() {
     setStartTime,
     setEndDate,
     setEndTime,
+    credits,
+    setCredits,
+    creditsMode,
+    setCreditsMode,
+    numOptions,
+    setNumOptions,
+    optionLabels,
+    setOptionLabels,
   } = useCreateProposal();
 
   const inputWrapperClassName =
@@ -85,7 +105,7 @@ export default function Create() {
   };
 
   return (
-    <MainSection narrow>
+    <MainSection narrow={true}>
       <div className="w-full justify-between">
         <h1 className="mb-8 line-clamp-1 flex flex-1 shrink-0 text-2xl font-normal leading-tight text-neutral-800 md:text-3xl">
           Create Proposal
@@ -224,8 +244,127 @@ export default function Create() {
             </div>
           </div>
 
-          {/* Actions */}
+          {/** CRISP Configuration */}
+          <div className="mb-6 flex flex-col gap-y-2 md:gap-y-3">
+            <div className="flex flex-col gap-0.5 md:gap-1">
+              <div className="flex gap-x-3">
+                <p className="text-base font-normal leading-tight text-neutral-800 md:text-lg">Configuration</p>
+              </div>
+              <p className="text-sm font-normal leading-normal text-neutral-500 md:text-base">Configure the proposal</p>
+            </div>
 
+            <div className="flex flex-col gap-y-4 rounded-xl border border-neutral-100 bg-neutral-0 p-4">
+              {/* Credit Mode */}
+              <div className="flex flex-col gap-y-2">
+                <label className="text-base font-normal leading-tight text-neutral-800">Credit Mode</label>
+                <DropdownContainer
+                  label={creditsMode === CreditsMode.CONSTANT ? "Constant Credits" : "Custom Credits"}
+                  disabled={isCreating}
+                >
+                  <DropdownItem
+                    selected={creditsMode === CreditsMode.CONSTANT}
+                    onSelect={() => setCreditsMode(CreditsMode.CONSTANT)}
+                  >
+                    Constant Credits
+                  </DropdownItem>
+                  <DropdownItem
+                    selected={creditsMode === CreditsMode.CUSTOM}
+                    onSelect={() => setCreditsMode(CreditsMode.CUSTOM)}
+                  >
+                    Custom Credits
+                  </DropdownItem>
+                </DropdownContainer>
+                <p className="text-sm font-normal leading-normal text-neutral-500">
+                  {creditsMode === CreditsMode.CONSTANT
+                    ? "All eligible voters receive the same number of credits."
+                    : "Credits are based on each voter's token balance."}
+                </p>
+              </div>
+
+              {/* Credits Amount (only for constant mode) */}
+              {creditsMode === CreditsMode.CONSTANT && (
+                <div className="flex flex-col gap-y-2">
+                  <InputText
+                    label="Credits per Voter"
+                    value={credits.toString()}
+                    onChange={(e) => setCredits(Number(e.target.value))}
+                    placeholder="e.g. 100"
+                    readOnly={isCreating}
+                  />
+                  <p className="text-sm font-normal leading-normal text-neutral-500">
+                    Number of voting credits each eligible voter receives.
+                  </p>
+                </div>
+              )}
+
+              {/* Number of Options */}
+              <div className="flex flex-col gap-y-2">
+                <InputNumber
+                  label="Number of Options"
+                  value={numOptions}
+                  min={2}
+                  max={10}
+                  step={1}
+                  onChange={(value) => {
+                    const newNum = Number.parseInt(value, 10) ?? 2;
+                    setNumOptions(newNum);
+
+                    // Adjust options array based on number
+                    if (newNum === 2) {
+                      setOptionLabels(["Yes", "No"]);
+                    } else if (newNum === 3) {
+                      setOptionLabels(["Yes", "No", "Abstain"]);
+                    } else {
+                      setOptionLabels((prev) => {
+                        const newLabels = [...prev];
+                        while (newLabels.length < newNum) {
+                          newLabels.push(`Option ${newLabels.length + 1}`);
+                        }
+                        return newLabels.slice(0, newNum);
+                      });
+                    }
+                  }}
+                  placeholder="e.g. 2"
+                  disabled={isCreating}
+                />
+                <p className="text-sm font-normal leading-normal text-neutral-500">
+                  Number of voting options (2-10). Two options enforces single-choice voting.
+                </p>
+              </div>
+
+              {/* Option Labels */}
+              <div className="flex flex-col gap-y-2">
+                <label className="text-base font-normal leading-tight text-neutral-800">Option Labels</label>
+                <p className="text-sm font-normal leading-normal text-neutral-500">
+                  {numOptions === 2
+                    ? "Binary vote with Yes/No options."
+                    : numOptions === 3
+                      ? "Standard vote with Yes/No/Abstain options."
+                      : "Customize the label for each voting option."}
+                </p>
+                <div className="flex flex-col gap-y-3 pt-2">
+                  {optionLabels.map((label, idx) => (
+                    <div key={idx} className="flex items-center gap-x-3">
+                      <span className="font-medium w-8 text-sm text-neutral-500">{idx + 1}.</span>
+                      <InputText
+                        className="flex-1"
+                        value={label}
+                        onChange={(e) => {
+                          const newLabels = [...optionLabels];
+                          newLabels[idx] = e.target.value;
+                          setOptionLabels(newLabels);
+                        }}
+                        placeholder={`Option ${idx + 1}`}
+                        readOnly={isCreating || numOptions <= 3}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
           <ProposalActions
             actions={actions}
             emptyListDescription="The proposal has no actions defined yet. Select a type of action to add to the proposal."

@@ -66,16 +66,15 @@ export default function Proposals() {
 
       setProposalIds(ids);
     } catch (err) {
-      console.log("error", err);
       setError(`Could not fetch proposals`);
     } finally {
       setIsLoading(false);
     }
-  }, [publicClient, blockNumber]);
+  }, [blockNumber]);
 
   useEffect(() => {
     fetchProposals();
-  }, [blockNumber, fetchProposals, publicClient]);
+  }, [blockNumber, fetchProposals]);
 
   const proposalCount = proposalIds.length;
   const entityLabel = proposalCount === 1 ? "Proposal" : "Proposals";
@@ -90,7 +89,7 @@ export default function Proposals() {
   }
 
   return (
-    <MainSection narrow>
+    <MainSection narrow={true}>
       <SectionView>
         <h1 className="line-clamp-1 flex flex-1 shrink-0 text-2xl font-normal leading-tight text-neutral-800 md:text-3xl">
           Proposals
@@ -122,7 +121,6 @@ export default function Proposals() {
           >
             <DataList.Container SkeletonElement={ProposalDataListItemSkeleton}>
               {proposalIds.map((proposalId) => (
-                // TODO: update with router agnostic ODS DataListItem
                 <ProposalCard key={proposalId} proposalId={proposalId} />
               ))}
             </DataList.Container>
