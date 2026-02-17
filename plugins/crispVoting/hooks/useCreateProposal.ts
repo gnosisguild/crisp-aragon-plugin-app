@@ -107,15 +107,9 @@ export function useCreateProposal() {
 
       const endDateTime = Math.floor(new Date(`${endDate}T${endTime ? endTime : "00:00:00"}`).getTime() / 1000);
 
-      const nowInSeconds = Math.floor(Date.now() / 1000);
-      const oneDayInSeconds = 60 * 60 * 24;
-
-      const startWindow: [bigint, bigint] = [BigInt(nowInSeconds), BigInt(nowInSeconds + oneDayInSeconds)];
-
       const allowFailureMap = 0n;
-      const data = encodeAbiParameters(parseAbiParameters("uint256, uint256[2], uint256, uint256, uint256"), [
+      const data = encodeAbiParameters(parseAbiParameters("uint256, uint256, uint256, uint256"), [
         allowFailureMap,
-        startWindow,
         BigInt(numOptions),
         BigInt(creditsMode.toString()),
         BigInt(credits),
