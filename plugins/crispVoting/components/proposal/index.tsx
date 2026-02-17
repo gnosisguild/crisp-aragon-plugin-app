@@ -18,11 +18,12 @@ export default function ProposalCard(props: ProposalInputs) {
   const { proposal, status: proposalFetchStatus } = useProposal(props.proposalId);
 
   const { symbol: tokenSymbol } = useToken();
+
   const proposalStatus = useProposalStatus(proposal!);
+
   const showLoading = getShowProposalLoading(proposal, proposalFetchStatus);
 
   const hasVoted = false;
-  const totalVotes = (proposal?.tally.yes ?? BigInt(0)) + (proposal?.tally.no ?? BigInt(0));
 
   if (!proposal && showLoading) {
     return (
@@ -35,7 +36,6 @@ export default function ProposalCard(props: ProposalInputs) {
       </section>
     );
   } else if (!proposal?.title && !proposal?.summary) {
-    // We have the proposal but no metadata yet
     return (
       <Link href={`#/proposals/${props.proposalId}`} className="mb-4 w-full">
         <Card className="p-4">
@@ -60,20 +60,11 @@ export default function ProposalCard(props: ProposalInputs) {
     );
   }
 
-  let result = { option: "", voteAmount: "", votePercentage: 0 };
-  if (proposal?.tally.yes > proposal?.tally.no) {
-    result = {
-      option: "Yes",
-      voteAmount: `${formatEther(proposal.tally.yes)} ${tokenSymbol ?? PUB_TOKEN_SYMBOL}`,
-      votePercentage: Number(((proposal?.tally.yes || BigInt(0)) * BigInt(10_000)) / (totalVotes || BigInt(1))) / 100,
-    };
-  } else if (proposal?.tally.no > proposal?.tally.yes) {
-    result = {
-      option: "No",
-      voteAmount: `${formatEther(proposal.tally.no)} ${tokenSymbol ?? PUB_TOKEN_SYMBOL}`,
-      votePercentage: Number(((proposal?.tally.no || BigInt(0)) * BigInt(10_000)) / (totalVotes || BigInt(1))) / 100,
-    };
-  }
+  const tally = proposal?.tally ?? [];
+  const options = proposal?.options ?? ["Yes", "No"];
+  const totalVotes = Array.from(tally).reduce((sum, count) => sum + (count ?? BigInt(0)), BigInt(0));
+
+  const result = getWinningResult(tally, options, totalVotes, tokenSymbol ?? PUB_TOKEN_SYMBOL);
 
   return (
     <ProposalDataListItem.Structure
@@ -92,6 +83,34 @@ export default function ProposalCard(props: ProposalInputs) {
       type={"majorityVoting"}
     />
   );
+}
+
+function getWinningResult(
+  tally: bigint[],
+  options: string[],
+  totalVotes: bigint,
+  tokenSymbol: string
+): { option: string; voteAmount: string; votePercentage: number } {
+  if (tally.length === 0 || totalVotes === BigInt(0)) {
+    return { option: "", voteAmount: "", votePercentage: 0 };
+  }
+
+  let winnerIndex = 0;
+  let maxVotes = BigInt(0);
+
+  for (let i = 0; i < tally.length; i++) {
+    const count = tally[i] ?? BigInt(0);
+    if (count > maxVotes) {
+      maxVotes = count;
+      winnerIndex = i;
+    }
+  }
+
+  return {
+    option: options[winnerIndex] ?? `Option ${winnerIndex + 1}`,
+    voteAmount: `${formatEther(maxVotes)} ${tokenSymbol}`,
+    votePercentage: Number((maxVotes * BigInt(10_000)) / totalVotes) / 100,
+  };
 }
 
 function getShowProposalLoading(

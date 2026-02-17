@@ -16,6 +16,7 @@ import { encodeAbiParameters, parseAbiParameters, toHex } from "viem";
 import { useTransactionManager } from "@/hooks/useTransactionManager";
 import { iVotesAbi } from "../artifacts/iVotes";
 import { usePublicClient } from "wagmi";
+import { CreditsMode } from "../utils/types";
 
 const UrlRegex = new RegExp(URL_PATTERN);
 
@@ -34,6 +35,11 @@ export function useCreateProposal() {
   const [startTime, setStartTime] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [endTime, setEndTime] = useState<string>("");
+
+  const [numOptions, setNumOptions] = useState<number>(2);
+  const [creditsMode, setCreditsMode] = useState<CreditsMode>(CreditsMode.CUSTOM);
+  const [credits, setCredits] = useState<number>(0);
+  const [optionLabels, setOptionLabels] = useState<string[]>(["Yes", "No"]);
 
   const client = usePublicClient();
 
@@ -92,6 +98,7 @@ export function useCreateProposal() {
         summary,
         description,
         resources,
+        options: optionLabels,
       };
 
       const ipfsPin = await uploadToPinata(JSON.stringify(proposalMetadataJsonObject));
@@ -106,7 +113,13 @@ export function useCreateProposal() {
       const startWindow: [bigint, bigint] = [BigInt(nowInSeconds), BigInt(nowInSeconds + oneDayInSeconds)];
 
       const allowFailureMap = 0n;
-      const data = encodeAbiParameters(parseAbiParameters("uint256, uint256[2]"), [allowFailureMap, startWindow]);
+      const data = encodeAbiParameters(parseAbiParameters("uint256, uint256[2], uint256, uint256, uint256"), [
+        allowFailureMap,
+        startWindow,
+        BigInt(numOptions),
+        BigInt(creditsMode.toString()),
+        BigInt(credits),
+      ]);
 
       // we need to approve tokens first
       // for now we hardcode the quote of the e3 request as it's a fixed value
@@ -156,5 +169,13 @@ export function useCreateProposal() {
     setStartTime,
     setEndDate,
     setEndTime,
+    credits,
+    setCredits,
+    creditsMode,
+    setCreditsMode,
+    numOptions,
+    setNumOptions,
+    optionLabels,
+    setOptionLabels,
   };
 }

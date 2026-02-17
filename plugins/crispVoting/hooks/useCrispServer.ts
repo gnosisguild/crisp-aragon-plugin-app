@@ -2,7 +2,7 @@ import { PUB_CRISP_SERVER_URL, PUB_TOKEN_ADDRESS } from "@/constants";
 import { useCallback, useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
 import type { EligibleVoter, IRoundDetailsResponse, VoteData, VotingStep } from "../utils/types";
-import { encodeSolidityProof } from "@crisp-e3/sdk";
+import { encodeSolidityProof, getZeroVote } from "@crisp-e3/sdk";
 import { iVotesAbi } from "../artifacts/iVotes";
 import { publicClient } from "../utils/client";
 import { useAlerts } from "@/context/Alerts";
@@ -117,7 +117,7 @@ export function useCrispServer(): CrispServerState {
     setError("");
   }, []);
 
-  const handleMask = async (e3Id: bigint) => {
+  const handleMask = async (e3Id: bigint, numOptions: string) => {
     const eligibleVoters = await getEligibleVoters(e3Id);
 
     if (!eligibleVoters || eligibleVoters.length === 0) {
@@ -126,21 +126,25 @@ export function useCrispServer(): CrispServerState {
 
     const voter = getRandomVoterToMask(eligibleVoters);
 
+    const zeroVote = getZeroVote(Number.parseInt(numOptions));
+
     return {
       voter,
       eligibleVoters,
       messageHash: "",
       signature: "",
-      vote: {
-        yes: 0n,
-        no: 0n,
-      },
+      vote: zeroVote,
       balance: voter.balance,
       slotAddress: voter.address,
     };
   };
 
-  const handleVote = async (e3Id: bigint, voteOption: bigint, blockNumber: bigint): Promise<VoteData> => {
+  const handleVote = async (
+    e3Id: bigint,
+    voteOption: bigint,
+    blockNumber: bigint,
+    numOptions: number
+  ): Promise<VoteData> => {
     // Step 1: Signing
     setVotingStep("signing");
     setLastActiveStep("signing");
@@ -165,7 +169,7 @@ export function useCrispServer(): CrispServerState {
 
     const adjustedBalance = balance / 10n ** BigInt(decimals / 2);
 
-    const vote = voteOption === 0n ? { yes: adjustedBalance, no: 0n } : { yes: 0n, no: adjustedBalance };
+    const vote = Array.from({ length: numOptions }, (_, i) => (i === Number(voteOption) ? adjustedBalance : 0n));
 
     return {
       signature,
@@ -194,9 +198,14 @@ export function useCrispServer(): CrispServerState {
 
       let voteData;
       if (isAMask) {
-        voteData = await handleMask(e3Id);
+        voteData = await handleMask(e3Id, roundState.num_options);
       } else {
-        voteData = await handleVote(e3Id, voteOption, BigInt(roundState.start_block) - 1n);
+        voteData = await handleVote(
+          e3Id,
+          voteOption,
+          BigInt(roundState.start_block) - 1n,
+          Number.parseInt(roundState.num_options)
+        );
       }
 
       // get the merkle leaves
@@ -216,6 +225,7 @@ export function useCrispServer(): CrispServerState {
           slotAddress: voteData.slotAddress,
           publicKey,
           balance: voteData.balance,
+          numOptions: Number.parseInt(roundState.num_options),
         });
       } else {
         proof = await crispSdk.generateVoteProof({

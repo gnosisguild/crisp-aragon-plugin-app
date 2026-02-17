@@ -17,14 +17,11 @@ import { useCanVote } from "../hooks/useCanVote";
 import { VoteCard } from "../components/vote/voteCard";
 import { CRISP_SERVER_STATE_LITE_ROUTE, useCrispServer } from "../hooks/useCrispServer";
 import { VoteResultCard } from "../components/vote/voteResultCard";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PUB_CRISP_SERVER_URL } from "@/constants";
 import type { IRoundDetailsResponse } from "../utils/types";
 
 const ZERO = BigInt(0);
-const VOTE_YES_VALUE = 0;
-const VOTE_NO_VALUE = 1;
-const MASKING_VALUE = 2;
 
 export default function ProposalDetail({ index: proposalIdx }: { index: bigint }) {
   const { address } = useAccount();
@@ -37,6 +34,19 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
 
   const showProposalLoading = getShowProposalLoading(proposal, proposalFetchStatus);
   const proposalStatus = useProposalStatus(proposal!);
+
+  const results = useMemo(() => {
+    if (!proposal || !proposal.options || !proposal.tally) return undefined;
+
+    return proposal.options.map((option, idx) => ({
+      option,
+      value: proposal.tally[idx]?.toString() ?? "0",
+    }));
+  }, [proposal]);
+
+  const options = useMemo(() => {
+    return proposal?.options ?? ["Yes", "No"];
+  }, [proposal]);
 
   const checkIfRoundIsReady = async (e3Id: bigint): Promise<boolean> => {
     const response = await fetch(`${PUB_CRISP_SERVER_URL}/${CRISP_SERVER_STATE_LITE_ROUTE}`, {
@@ -67,19 +77,18 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
     _chechkIfRoundIsReady().catch();
   }, [proposal]);
 
-  const onVote = (voteOption: number | null) => {
+  const onVote = (optionIndex: number) => {
     if (!proposal) {
       return;
     }
 
-    switch (voteOption) {
-      case VOTE_YES_VALUE:
-        return postVote(BigInt(VOTE_YES_VALUE), proposal?.e3Id);
-      case VOTE_NO_VALUE:
-        return postVote(BigInt(VOTE_NO_VALUE), proposal?.e3Id);
-      case MASKING_VALUE:
-        return postVote(BigInt(MASKING_VALUE), proposal?.e3Id, true);
-    }
+    postVote(BigInt(optionIndex), proposal.e3Id);
+  };
+
+  const onMask = () => {
+    if (!proposal) return;
+    // Mask uses the next index after the last option
+    postVote(BigInt(options.length), proposal.e3Id, true);
   };
 
   const hasBalance = !!balance && balance > ZERO;
@@ -118,6 +127,7 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
                 voteStartDate={Number(proposal?.parameters.startDate)}
                 voteEndDate={Number(proposal?.parameters.endDate)}
                 isCommitteeReady={isCommitteeReady}
+                options={options}
                 disabled={
                   isCommitteeReady === false ||
                   canVote === false ||
@@ -126,6 +136,7 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
                 }
                 isLoading={isLoading}
                 onClickVote={onVote}
+                onClickMask={onMask}
                 proposalId={proposalIdx}
                 votingStep={votingStep}
                 lastActiveStep={lastActiveStep}
@@ -139,10 +150,7 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
               <VoteResultCard
                 isSignalling={proposal.actions && proposal.actions.length === 0}
                 proposalId={proposalIdx}
-                results={[
-                  { option: "yes", value: String(proposal.tally.yes || ZERO) },
-                  { option: "no", value: String(proposal.tally.no || ZERO) },
-                ]}
+                results={results}
               />
             )}
             <CardResources resources={proposal.resources} title="Resources" />

@@ -1,6 +1,6 @@
-import { AvatarIcon, Breadcrumbs, Heading, IBreadcrumbsLink, IconType, ProposalStatus, Tag } from "@aragon/ods";
+import { AvatarIcon, Breadcrumbs, Heading, type IBreadcrumbsLink, IconType, ProposalStatus, Tag } from "@aragon/ods";
 import { Publisher } from "@/components/publisher";
-import { Proposal } from "../../utils/types";
+import type { Proposal } from "../../utils/types";
 import { useProposalStatus } from "../../hooks/useProposalVariantStatus";
 import { Else, ElseIf, If, Then } from "@/components/if";
 import { getSimpleRelativeTimeFromDate } from "@/utils/dates";
@@ -19,6 +19,7 @@ interface ProposalHeaderProps {
 
 const ProposalHeader: React.FC<ProposalHeaderProps> = ({ proposalIdx, proposal }) => {
   const proposalStatus = useProposalStatus(proposal);
+
   const tagVariant = getTagVariantFromStatus(proposalStatus);
 
   const breadcrumbs: IBreadcrumbsLink[] = [{ label: "Proposals", href: "#/" }, { label: formatId(proposalIdx) }];

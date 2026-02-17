@@ -37,7 +37,7 @@ export function useCanCreateProposal() {
 
     setMinProposerVotingPower(contractReads[0].result as bigint);
     setVotingToken(contractReads[1].result as Address);
-  }, [contractReads?.[0]?.status, contractReads?.[1]?.status, contractReads]);
+  }, [contractReads]);
 
   if (!address) return false;
   else if (!minProposerVotingPower) return true;
