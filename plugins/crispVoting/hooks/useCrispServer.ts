@@ -1,4 +1,4 @@
-import { PUB_CRISP_SERVER_URL, PUB_TOKEN_ADDRESS } from "@/constants";
+import { PUB_CHAIN, PUB_CRISP_SERVER_URL, PUB_TOKEN_ADDRESS } from "@/constants";
 import { useCallback, useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
 import { CreditsMode } from "../utils/types";
@@ -25,6 +25,14 @@ interface CrispServerState {
   votingStep: VotingStep;
   lastActiveStep: VotingStep | null;
   stepMessage: string;
+  txHash: string | null;
+}
+
+interface VoteResponse {
+  status: string;
+  tx_hash: string | null;
+  message: string | null;
+  is_vote_update: boolean | null;
 }
 
 /**
@@ -52,6 +60,7 @@ export function useCrispServer(): CrispServerState {
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [txHash, setTxHash] = useState<string | null>(null);
 
   const getRoundState = async (e3Id: bigint): Promise<IRoundDetailsResponse> => {
     const response = await fetch(`${PUB_CRISP_SERVER_URL}/${CRISP_SERVER_STATE_LITE_ROUTE}`, {
@@ -272,12 +281,21 @@ export function useCrispServer(): CrispServerState {
 
       if (response.status !== 200) {
         setError("Failed to post vote");
+        return;
       }
 
-      setVotingStep("complete");
-      setStepMessage(`${isAMask ? "Masking" : "Vote"} submitted successfully!`);
+      const voteResponse = (await response.json()) as VoteResponse;
 
-      addAlert(`${isAMask ? "Masking" : "Vote"} submitted successfully!`, { timeout: 3000, type: "success" });
+      if (voteResponse.tx_hash) {
+        setTxHash(voteResponse.tx_hash);
+      }
+
+      const label = isAMask ? "Masking" : voteResponse.is_vote_update ? "Vote update" : "Vote";
+
+      setVotingStep("complete");
+      setStepMessage(`${label} submitted successfully!`);
+
+      addAlert(`${label} submitted successfully!`, { timeout: 3000, type: "success" });
     } catch (error) {
       console.error("Error in postVote:", error);
       setError(error instanceof Error ? error.message : "Unknown error");
@@ -293,5 +311,6 @@ export function useCrispServer(): CrispServerState {
     votingStep,
     lastActiveStep,
     stepMessage,
+    txHash,
   };
 }

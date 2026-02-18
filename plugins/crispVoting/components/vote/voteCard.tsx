@@ -17,6 +17,7 @@ export interface VoteCardProps {
   lastActiveStep: VotingStep | null;
   stepMessage: string;
   isCommitteeReady: boolean;
+  txHash: string | null;
   onClickVote: (voteOption: number) => void;
   onClickMask: () => void;
 }
@@ -48,6 +49,7 @@ export const VoteCard = ({
   lastActiveStep,
   stepMessage,
   isCommitteeReady,
+  txHash,
 }: VoteCardProps) => {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isMasking, setIsMasking] = useState<boolean>(false);
@@ -84,7 +86,14 @@ export const VoteCard = ({
         members. Press <b>Mask</b> to do that.
       </p>
 
-      {isLoading && <VotingStepIndicator step={votingStep} lastActiveStep={lastActiveStep} message={stepMessage} />}
+      {(isLoading || txHash) && (
+        <VotingStepIndicator
+          step={txHash && !isLoading ? "complete" : votingStep}
+          lastActiveStep={lastActiveStep}
+          message={txHash && !isLoading ? "Vote submitted successfully!" : stepMessage}
+          txHash={txHash}
+        />
+      )}
 
       {voteStartDate > Math.round(Date.now() / 1000) && (
         <p className="text-sm text-neutral-400">The vote will start on {unixTimestampToDate(voteStartDate)}</p>

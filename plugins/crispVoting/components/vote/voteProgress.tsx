@@ -1,10 +1,12 @@
 import React from "react";
+import { PUB_CHAIN } from "@/constants";
 import type { VotingStep } from "../../utils/types";
 
 type VotingStepIndicatorProps = {
   step: VotingStep;
   message: string;
   lastActiveStep?: VotingStep | null;
+  txHash?: string | null;
 };
 
 const steps: { key: VotingStep; label: string; icon: string }[] = [
@@ -27,7 +29,7 @@ const steps: { key: VotingStep; label: string; icon: string }[] = [
 
 type StepStatus = "complete" | "active" | "error" | "pending";
 
-const VotingStepIndicator: React.FC<VotingStepIndicatorProps> = ({ step, message, lastActiveStep }) => {
+const VotingStepIndicator: React.FC<VotingStepIndicatorProps> = ({ step, message, lastActiveStep, txHash }) => {
   const stepOrder = steps.map((s) => s.key);
 
   const getStepStatus = (stepKey: VotingStep): StepStatus => {
@@ -142,6 +144,16 @@ const VotingStepIndicator: React.FC<VotingStepIndicatorProps> = ({ step, message
             </svg>
           )}
           <span>{message}</span>
+          {isComplete && txHash && (
+            <a
+              href={`${PUB_CHAIN.blockExplorers?.default?.url}/tx/${txHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-auto shrink-0 underline hover:no-underline"
+            >
+              View transaction
+            </a>
+          )}
         </div>
       </div>
 
