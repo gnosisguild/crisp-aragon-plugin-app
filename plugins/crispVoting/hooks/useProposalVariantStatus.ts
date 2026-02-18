@@ -42,17 +42,19 @@ function isRejected(tally: bigint[], numOptions: number): boolean {
   return false;
 }
 
-export const useProposalVariantStatus = (proposal: Proposal) => {
+export const useProposalVariantStatus = (proposal: Proposal, totalVotingPowerOverride?: bigint) => {
   const [status, setStatus] = useState({ variant: "neutral", label: "Pending" });
   const { tokenSupply: totalSupply } = useToken();
 
+  const effectiveTotalSupply = totalVotingPowerOverride ?? totalSupply;
+
   useEffect(() => {
-    if (!proposal || !proposal?.parameters || !totalSupply) return;
+    if (!proposal || !proposal?.parameters || !effectiveTotalSupply) return;
 
     const tally: bigint[] = Array.isArray(proposal.tally) ? proposal.tally : [];
     const numOptions = proposal.numOptions ?? tally.length;
     const totalVotes = getTotalVotes(tally);
-    const minVotingPower = (totalSupply * BigInt(proposal.parameters.minVotingPower)) / BigInt(100);
+    const minVotingPower = (effectiveTotalSupply * BigInt(proposal.parameters.minVotingPower)) / BigInt(100);
 
     if (proposal?.active) {
       setStatus({ variant: "info", label: "Active" });
@@ -73,23 +75,25 @@ export const useProposalVariantStatus = (proposal: Proposal) => {
     } else {
       setStatus({ variant: "critical", label: "Low turnout" });
     }
-  }, [proposal, totalSupply]);
+  }, [proposal, effectiveTotalSupply]);
 
   return status;
 };
 
-export const useProposalStatus = (proposal: Proposal) => {
+export const useProposalStatus = (proposal: Proposal, totalVotingPowerOverride?: bigint) => {
   const [status, setStatus] = useState<ProposalStatus>(ProposalStatus.PENDING);
 
   const { tokenSupply: totalSupply } = useToken();
 
+  const effectiveTotalSupply = totalVotingPowerOverride ?? totalSupply;
+
   useEffect(() => {
-    if (!proposal || !proposal?.parameters || !totalSupply) return;
+    if (!proposal || !proposal?.parameters || !effectiveTotalSupply) return;
 
     const tally = proposal.tally ?? [];
     const numOptions = proposal.numOptions ?? tally.length;
     const totalVotes = getTotalVotes(tally);
-    const minVotingPower = (totalSupply * BigInt(proposal.parameters.minVotingPower)) / BigInt(100);
+    const minVotingPower = (effectiveTotalSupply * BigInt(proposal.parameters.minVotingPower)) / BigInt(100);
 
     if (proposal?.active) {
       setStatus(ProposalStatus.ACTIVE);
@@ -110,7 +114,7 @@ export const useProposalStatus = (proposal: Proposal) => {
     } else {
       setStatus(ProposalStatus.PENDING);
     }
-  }, [proposal, totalSupply]);
+  }, [proposal, effectiveTotalSupply]);
 
   return status;
 };

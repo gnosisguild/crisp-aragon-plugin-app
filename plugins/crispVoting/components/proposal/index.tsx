@@ -15,11 +15,11 @@ type ProposalInputs = {
 };
 
 export default function ProposalCard(props: ProposalInputs) {
-  const { proposal, status: proposalFetchStatus } = useProposal(props.proposalId);
+  const { proposal, totalVotingPower, status: proposalFetchStatus } = useProposal(props.proposalId);
 
   const { symbol: tokenSymbol } = useToken();
 
-  const proposalStatus = useProposalStatus(proposal!);
+  const proposalStatus = useProposalStatus(proposal!, totalVotingPower);
 
   const showLoading = getShowProposalLoading(proposal, proposalFetchStatus);
 

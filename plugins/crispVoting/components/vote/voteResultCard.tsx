@@ -43,6 +43,8 @@ export const VoteResultCard = ({ results, proposalId, isSignalling }: VoteResult
     }));
   }, [results]);
 
+  console.log("Parsed Results:", parsedResults);
+
   const total = useMemo(() => {
     return parsedResults.reduce((sum, r) => sum + r.value, 0);
   }, [parsedResults]);
