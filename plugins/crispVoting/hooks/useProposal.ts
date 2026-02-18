@@ -9,7 +9,8 @@ import { publicClient } from "../utils/client";
 import type { RawAction, ProposalMetadata } from "@/utils/types";
 import type { IRoundDetailsResponse, Proposal, Tally } from "../utils/types";
 import type { AbiEvent, Hex } from "viem";
-import { CRISP_SERVER_STATE_LITE_ROUTE } from "./useCrispServer";
+import { CreditsMode } from "../utils/types";
+import { CRISP_SERVER_STATE_LITE_ROUTE, CRISP_SERVER_STATE_ELIGIBLE_VOTERS } from "./useCrispServer";
 
 type ProposalCreatedLogResponse = {
   args: {
@@ -31,7 +32,7 @@ export const ProposalCreatedEvent = getAbiItem({
 export function useProposal(proposalId: bigint, autoRefresh = false) {
   const [creationEvent, setCreationEvent] = useState<ProposalCreatedLogResponse["args"]>();
   const [metadataUri, setMetadataUri] = useState<string>();
-  const { data: blockNumber } = useBlockNumber({ watch: autoRefresh });
+  const { data: blockNumber } = useBlockNumber({ watch: true });
 
   // On-chain proposal data
   const {
@@ -47,6 +48,8 @@ export function useProposal(proposalId: bigint, autoRefresh = false) {
   });
 
   const [isTallied, setIsTallied] = useState(false);
+  const [isCommitteeReady, setIsCommitteeReady] = useState(false);
+  const [totalVotingPower, setTotalVotingPower] = useState<bigint | undefined>(undefined);
 
   // On-chain tally
   const { data: tallyResult, refetch: refetchTally } = useReadContract({
@@ -74,14 +77,32 @@ export function useProposal(proposalId: bigint, autoRefresh = false) {
   useEffect(() => {
     if (!proposalRaw?.e3Id) return;
 
+    const roundId = Number(proposalRaw.e3Id.toString());
+
     fetch(`${PUB_CRISP_SERVER_URL}/${CRISP_SERVER_STATE_LITE_ROUTE}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ round_id: Number(proposalRaw.e3Id.toString()) }),
+      body: JSON.stringify({ round_id: roundId }),
     })
       .then((res) => (res.ok ? res.json() : null))
-      .then((data: IRoundDetailsResponse | null) => {
+      .then(async (data: IRoundDetailsResponse | null) => {
         setIsTallied(data?.status === "Finished");
+        setIsCommitteeReady(data ? data.committee_public_key.length > 0 : false);
+
+        if (data && data.credit_mode === CreditsMode.CONSTANT && data.credits) {
+          const res = await fetch(`${PUB_CRISP_SERVER_URL}/${CRISP_SERVER_STATE_ELIGIBLE_VOTERS}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ round_id: roundId }),
+          });
+
+          if (res.ok) {
+            const voters = await res.json();
+            setTotalVotingPower(BigInt(data.credits) * BigInt(voters.length));
+          }
+        } else {
+          setTotalVotingPower(undefined);
+        }
       })
       .catch(() => {});
   }, [proposalRaw?.e3Id, blockNumber]);
@@ -125,6 +146,8 @@ export function useProposal(proposalId: bigint, autoRefresh = false) {
 
   return {
     proposal,
+    isCommitteeReady,
+    totalVotingPower,
     status: {
       proposalReady: proposalFetchStatus === "idle",
       proposalLoading: proposalFetchStatus === "fetching",

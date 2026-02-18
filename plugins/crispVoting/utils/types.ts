@@ -109,6 +109,8 @@ export interface IRoundDetailsResponse {
   token_address: string;
   balance_threshold: string;
   num_options: string;
+  credit_mode: number;
+  credits: string | null;
 }
 
 export type VotingStep = "idle" | "signing" | "generating_proof" | "broadcasting" | "confirming" | "complete" | "error";

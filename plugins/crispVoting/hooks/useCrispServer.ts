@@ -1,6 +1,7 @@
 import { PUB_CRISP_SERVER_URL, PUB_TOKEN_ADDRESS } from "@/constants";
 import { useCallback, useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
+import { CreditsMode } from "../utils/types";
 import type { EligibleVoter, IRoundDetailsResponse, VoteData, VotingStep } from "../utils/types";
 import { encodeSolidityProof, getZeroVote } from "@crisp-e3/sdk";
 import { iVotesAbi } from "../artifacts/iVotes";
@@ -143,7 +144,8 @@ export function useCrispServer(): CrispServerState {
     e3Id: bigint,
     voteOption: bigint,
     blockNumber: bigint,
-    numOptions: number
+    numOptions: number,
+    roundState: IRoundDetailsResponse
   ): Promise<VoteData> => {
     // Step 1: Signing
     setVotingStep("signing");
@@ -154,20 +156,26 @@ export function useCrispServer(): CrispServerState {
     const signature = await signMessageAsync({ message });
     const messageHash = hashMessage(message);
 
-    const balance = await publicClient.readContract({
-      address: PUB_TOKEN_ADDRESS,
-      abi: iVotesAbi,
-      functionName: "getPastVotes",
-      args: [address as `0x${string}`, blockNumber],
-    });
+    let adjustedBalance: bigint;
 
-    const decimals = await publicClient.readContract({
-      address: PUB_TOKEN_ADDRESS,
-      abi: iVotesAbi,
-      functionName: "decimals",
-    });
+    if (roundState.credit_mode === CreditsMode.CONSTANT && roundState.credits) {
+      adjustedBalance = BigInt(roundState.credits);
+    } else {
+      const balance = await publicClient.readContract({
+        address: PUB_TOKEN_ADDRESS,
+        abi: iVotesAbi,
+        functionName: "getPastVotes",
+        args: [address as `0x${string}`, blockNumber],
+      });
 
-    const adjustedBalance = balance / 10n ** BigInt(decimals / 2);
+      const decimals = await publicClient.readContract({
+        address: PUB_TOKEN_ADDRESS,
+        abi: iVotesAbi,
+        functionName: "decimals",
+      });
+
+      adjustedBalance = balance / 10n ** BigInt(decimals / 2);
+    }
 
     const vote = Array.from({ length: numOptions }, (_, i) => (i === Number(voteOption) ? adjustedBalance : 0n));
 
@@ -204,7 +212,8 @@ export function useCrispServer(): CrispServerState {
           e3Id,
           voteOption,
           BigInt(roundState.start_block) - 1n,
-          Number.parseInt(roundState.num_options)
+          Number.parseInt(roundState.num_options),
+          roundState
         );
       }
 
@@ -270,6 +279,7 @@ export function useCrispServer(): CrispServerState {
 
       addAlert(`${isAMask ? "Masking" : "Vote"} submitted successfully!`, { timeout: 3000, type: "success" });
     } catch (error) {
+      console.log("Error in postVote:", error);
       setError(error instanceof Error ? error.message : "Unknown error");
     } finally {
       resetVotingState();

@@ -15,28 +15,26 @@ import { AddressText } from "@/components/text/address";
 import Link from "next/link";
 import { useCanVote } from "../hooks/useCanVote";
 import { VoteCard } from "../components/vote/voteCard";
-import { CRISP_SERVER_STATE_LITE_ROUTE, useCrispServer } from "../hooks/useCrispServer";
+import { useCrispServer } from "../hooks/useCrispServer";
 import { VoteResultCard } from "../components/vote/voteResultCard";
-import { useEffect, useMemo, useState } from "react";
-import { PUB_CRISP_SERVER_URL } from "@/constants";
-import type { IRoundDetailsResponse } from "../utils/types";
+import { useMemo } from "react";
 
 const ZERO = BigInt(0);
 
 export default function ProposalDetail({ index: proposalIdx }: { index: bigint }) {
   const { address } = useAccount();
   const { isLoading, error, postVote, votingStep, lastActiveStep, stepMessage } = useCrispServer();
-  const { proposal, status: proposalFetchStatus } = useProposal(proposalIdx);
-
-  const [isCommitteeReady, setIsCommitteeReady] = useState<boolean>(false);
+  const { proposal, isCommitteeReady, totalVotingPower, status: proposalFetchStatus } = useProposal(proposalIdx);
   const canVote = useCanVote(proposalIdx);
   const { balance, delegatesTo } = useTokenVotes(address);
 
   const showProposalLoading = getShowProposalLoading(proposal, proposalFetchStatus);
-  const proposalStatus = useProposalStatus(proposal!);
+  const proposalStatus = useProposalStatus(proposal!, totalVotingPower);
 
   const results = useMemo(() => {
     if (!proposal || !proposal.options || !proposal.tally) return undefined;
+
+    console.log("OPT", proposal.tally);
 
     return proposal.options.map((option, idx) => ({
       option,
@@ -46,35 +44,6 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
 
   const options = useMemo(() => {
     return proposal?.options ?? ["Yes", "No"];
-  }, [proposal]);
-
-  const checkIfRoundIsReady = async (e3Id: bigint): Promise<boolean> => {
-    const response = await fetch(`${PUB_CRISP_SERVER_URL}/${CRISP_SERVER_STATE_LITE_ROUTE}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ round_id: Number(e3Id.toString()) }),
-    });
-
-    if (!response.ok) {
-      return false;
-    }
-
-    const data = (await response.json()) as IRoundDetailsResponse;
-
-    return data.committee_public_key.length > 0;
-  };
-
-  useEffect(() => {
-    const _chechkIfRoundIsReady = async () => {
-      if (proposal && proposal.e3Id) {
-        const ready = await checkIfRoundIsReady(proposal.e3Id);
-        setIsCommitteeReady(ready);
-      }
-    };
-
-    _chechkIfRoundIsReady().catch();
   }, [proposal]);
 
   const onVote = (optionIndex: number) => {
@@ -105,7 +74,7 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
 
   return (
     <section className="flex w-screen min-w-full max-w-full flex-col items-center">
-      <ProposalHeader proposalIdx={proposalIdx} proposal={proposal} />
+      <ProposalHeader proposalIdx={proposalIdx} proposal={proposal} totalVotingPower={totalVotingPower} />
 
       <div className="mx-auto w-full max-w-screen-xl px-4 py-6 md:px-16 md:pb-20 md:pt-10">
         <div className="flex w-full flex-col gap-x-12 gap-y-6 md:flex-row">
