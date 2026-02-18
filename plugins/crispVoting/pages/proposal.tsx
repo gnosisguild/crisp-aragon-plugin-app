@@ -23,7 +23,7 @@ const ZERO = BigInt(0);
 
 export default function ProposalDetail({ index: proposalIdx }: { index: bigint }) {
   const { address } = useAccount();
-  const { isLoading, error, postVote, votingStep, lastActiveStep, stepMessage } = useCrispServer();
+  const { isLoading, error, postVote, votingStep, lastActiveStep, stepMessage, txHash } = useCrispServer();
   const { proposal, isCommitteeReady, totalVotingPower, status: proposalFetchStatus } = useProposal(proposalIdx);
   const canVote = useCanVote(proposalIdx);
   const { balance, delegatesTo } = useTokenVotes(address);
@@ -108,6 +108,7 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
                 votingStep={votingStep}
                 lastActiveStep={lastActiveStep}
                 stepMessage={stepMessage}
+                txHash={txHash}
               />
             )}
             <p>{error}</p>

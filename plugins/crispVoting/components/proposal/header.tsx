@@ -3,11 +3,10 @@ import { Publisher } from "@/components/publisher";
 import type { Proposal } from "../../utils/types";
 import { useProposalStatus } from "../../hooks/useProposalStatus";
 import { Else, ElseIf, If, Then } from "@/components/if";
-import { getSimpleRelativeTimeFromDate } from "@/utils/dates";
 import { HeaderSection } from "@/components/layout/header-section";
 import { getTagVariantFromStatus } from "@/utils/ui-variants";
 import { capitalizeFirstLetter, formatId } from "@/utils/text";
-import dayjs from "dayjs";
+import { useEffect, useState } from "react";
 
 const DEFAULT_PROPOSAL_TITLE = "(No proposal title)";
 const DEFAULT_PROPOSAL_SUMMARY = "(No proposal summary)";
@@ -20,6 +19,7 @@ interface ProposalHeaderProps {
 
 const ProposalHeader: React.FC<ProposalHeaderProps> = ({ proposalIdx, proposal, totalVotingPower }) => {
   const proposalStatus = useProposalStatus(proposal, totalVotingPower);
+  const countdown = useCountdown(Number(proposal.parameters.endDate) * 1000);
 
   const tagVariant = getTagVariantFromStatus(proposalStatus);
 
@@ -68,10 +68,8 @@ const ProposalHeader: React.FC<ProposalHeaderProps> = ({ proposalIdx, proposal, 
                   <span className="text-neutral-500">The voting period is over</span>
                 </ElseIf>
                 <Else>
-                  <span className="text-neutral-500">Active for </span>
-                  <span className="text-neutral-800">
-                    {getSimpleRelativeTimeFromDate(dayjs(Number(proposal.parameters.endDate) * 1000))}
-                  </span>
+                  <span className="text-neutral-500">Ends in </span>
+                  <span className="text-neutral-800">{countdown}</span>
                 </Else>
               </If>
             </div>
@@ -83,3 +81,30 @@ const ProposalHeader: React.FC<ProposalHeaderProps> = ({ proposalIdx, proposal, 
 };
 
 export default ProposalHeader;
+
+function useCountdown(endTimestampMs: number): string {
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const remaining = endTimestampMs - Date.now();
+    if (remaining <= 0) return;
+
+    // Update every second when < 1 minute, every minute otherwise
+    const intervalMs = remaining < 60_000 ? 1_000 : 60_000;
+    const interval = setInterval(() => setNow(Date.now()), intervalMs);
+    return () => clearInterval(interval);
+  }, [endTimestampMs, now < endTimestampMs]);
+
+  const diff = endTimestampMs - now;
+  if (diff <= 0) return "0 seconds";
+
+  const seconds = Math.floor(diff / 1_000) % 60;
+  const minutes = Math.floor(diff / 60_000) % 60;
+  const hours = Math.floor(diff / 3_600_000) % 24;
+  const days = Math.floor(diff / 86_400_000);
+
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  if (minutes > 0) return `${minutes}m`;
+  return `${seconds}s`;
+}
