@@ -279,7 +279,7 @@ export function useCrispServer(): CrispServerState {
 
       addAlert(`${isAMask ? "Masking" : "Vote"} submitted successfully!`, { timeout: 3000, type: "success" });
     } catch (error) {
-      console.log("Error in postVote:", error);
+      console.error("Error in postVote:", error);
       setError(error instanceof Error ? error.message : "Unknown error");
     } finally {
       resetVotingState();

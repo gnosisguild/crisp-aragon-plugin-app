@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useBlockNumber, useReadContract } from "wagmi";
 import { CrispVotingAbi } from "../artifacts/CrispVoting";
 import { PUB_CRISP_SERVER_URL, PUB_CRISP_VOTING_PLUGIN_ADDRESS } from "@/constants";
@@ -29,7 +29,7 @@ export const ProposalCreatedEvent = getAbiItem({
   name: "ProposalCreated",
 }) as AbiEvent;
 
-export function useProposal(proposalId: bigint, autoRefresh = false) {
+export function useProposal(proposalId: bigint) {
   const [creationEvent, setCreationEvent] = useState<ProposalCreatedLogResponse["args"]>();
   const [metadataUri, setMetadataUri] = useState<string>();
   const { data: blockNumber } = useBlockNumber({ watch: true });
@@ -39,7 +39,6 @@ export function useProposal(proposalId: bigint, autoRefresh = false) {
     data: proposalResult,
     error: proposalError,
     fetchStatus: proposalFetchStatus,
-    refetch: proposalRefetch,
   } = useReadContract({
     address: PUB_CRISP_VOTING_PLUGIN_ADDRESS,
     abi: CrispVotingAbi,
@@ -52,7 +51,7 @@ export function useProposal(proposalId: bigint, autoRefresh = false) {
   const [totalVotingPower, setTotalVotingPower] = useState<bigint | undefined>(undefined);
 
   // On-chain tally
-  const { data: tallyResult, refetch: refetchTally } = useReadContract({
+  const { data: tallyResult } = useReadContract({
     address: PUB_CRISP_VOTING_PLUGIN_ADDRESS,
     abi: CrispVotingAbi,
     functionName: "getTally",
@@ -67,15 +66,11 @@ export function useProposal(proposalId: bigint, autoRefresh = false) {
     return Array.isArray(result.counts) ? result.counts : [];
   }, [tallyResult]);
 
-  // Auto-refresh on new blocks
-  useEffect(() => {
-    if (!autoRefresh || !blockNumber) return;
-    proposalRefetch();
-    refetchTally();
-  }, [blockNumber, autoRefresh, proposalRefetch, refetchTally]);
+  const eligibleVotersFetched = useRef(false);
 
   useEffect(() => {
     if (!proposalRaw?.e3Id) return;
+    if (isTallied && isCommitteeReady) return;
 
     const roundId = Number(proposalRaw.e3Id.toString());
 
@@ -89,7 +84,8 @@ export function useProposal(proposalId: bigint, autoRefresh = false) {
         setIsTallied(data?.status === "Finished");
         setIsCommitteeReady(data ? data.committee_public_key.length > 0 : false);
 
-        if (data && data.credit_mode === CreditsMode.CONSTANT && data.credits) {
+        if (data && data.credit_mode === CreditsMode.CONSTANT && data.credits && !eligibleVotersFetched.current) {
+          eligibleVotersFetched.current = true;
           const res = await fetch(`${PUB_CRISP_SERVER_URL}/${CRISP_SERVER_STATE_ELIGIBLE_VOTERS}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -100,12 +96,12 @@ export function useProposal(proposalId: bigint, autoRefresh = false) {
             const voters = await res.json();
             setTotalVotingPower(BigInt(data.credits) * BigInt(voters.length));
           }
-        } else {
+        } else if (data && data.credit_mode !== CreditsMode.CONSTANT) {
           setTotalVotingPower(undefined);
         }
       })
       .catch(() => {});
-  }, [proposalRaw?.e3Id, blockNumber]);
+  }, [proposalRaw?.e3Id, blockNumber, isTallied, isCommitteeReady]);
 
   // Fetch creation event (only once when proposal data is available)
   const snapshotBlock = proposalRaw?.parameters?.snapshotBlock;

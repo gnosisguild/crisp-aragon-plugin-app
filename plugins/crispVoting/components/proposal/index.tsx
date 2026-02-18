@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Card, ProposalStatus, ProposalDataListItem } from "@aragon/ods";
 import { PleaseWaitSpinner } from "@/components/please-wait";
 import { useProposal } from "../../hooks/useProposal";
-import { useProposalStatus } from "../../hooks/useProposalVariantStatus";
+import { useProposalStatus } from "../../hooks/useProposalStatus";
 import { useToken } from "../../hooks/useToken";
 import { formatEther } from "viem";
 import { PUB_TOKEN_SYMBOL } from "@/constants";
@@ -12,6 +12,7 @@ const DEFAULT_PROPOSAL_METADATA_SUMMARY = "(The metadata of the proposal is not 
 
 type ProposalInputs = {
   proposalId: bigint;
+  statusFilter?: ProposalStatus;
 };
 
 export default function ProposalCard(props: ProposalInputs) {
@@ -24,6 +25,11 @@ export default function ProposalCard(props: ProposalInputs) {
   const showLoading = getShowProposalLoading(proposal, proposalFetchStatus);
 
   const hasVoted = false;
+
+  // Hide card if it doesn't match the active filter (only once status is resolved)
+  if (props.statusFilter && proposal && proposalStatus !== props.statusFilter) {
+    return null;
+  }
 
   if (!proposal && showLoading) {
     return (
