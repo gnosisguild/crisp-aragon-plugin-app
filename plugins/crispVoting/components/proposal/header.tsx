@@ -1,7 +1,7 @@
 import { AvatarIcon, Breadcrumbs, Heading, type IBreadcrumbsLink, IconType, ProposalStatus, Tag } from "@aragon/ods";
 import { Publisher } from "@/components/publisher";
 import type { Proposal } from "../../utils/types";
-import { useProposalStatus } from "../../hooks/useProposalVariantStatus";
+import { useProposalStatus } from "../../hooks/useProposalStatus";
 import { Else, ElseIf, If, Then } from "@/components/if";
 import { getSimpleRelativeTimeFromDate } from "@/utils/dates";
 import { HeaderSection } from "@/components/layout/header-section";

@@ -1,7 +1,16 @@
 import { useAccount, useBlockNumber } from "wagmi";
-import { type ReactNode, useCallback, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import ProposalCard from "../components/proposal";
-import { Button, DataList, IconType, ProposalDataListItemSkeleton, type DataListState } from "@aragon/ods";
+import {
+  Button,
+  DataList,
+  IconType,
+  ProposalDataListItemSkeleton,
+  ProposalStatus,
+  Toggle,
+  ToggleGroup,
+  type DataListState,
+} from "@aragon/ods";
 import { useCanCreateProposal } from "../hooks/useCanCreateProposal";
 import Link from "next/link";
 import { Else, If, Then } from "@/components/if";
@@ -33,38 +42,56 @@ export default function Proposals() {
   const [proposalIds, setProposalIds] = useState<bigint[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const lastFetchedBlock = useRef<bigint | null>(null);
 
   const fetchProposals = useCallback(async () => {
     if (!publicClient || !blockNumber || !PUB_DEPLOYMENT_BLOCK || !ProposalCreatedEvent) {
       return;
     }
 
+    const fromBlock = lastFetchedBlock.current ? lastFetchedBlock.current + 1n : BigInt(PUB_DEPLOYMENT_BLOCK);
+
+    // Nothing new to fetch
+    if (lastFetchedBlock.current && fromBlock > blockNumber) return;
+
     try {
       const logs = await publicClient
         .getLogs({
           address: PUB_CRISP_VOTING_PLUGIN_ADDRESS,
           event: ProposalCreatedEvent,
-          fromBlock: BigInt(PUB_DEPLOYMENT_BLOCK),
+          fromBlock,
           toBlock: blockNumber,
         })
         .catch((err) => {
           console.error("Could not fetch the proposals", err);
         });
 
+      lastFetchedBlock.current = blockNumber;
+
       if (!logs || !Array.isArray(logs) || !logs.length) {
-        setProposalIds([]);
+        // Only clear on initial fetch, not on incremental updates
+        if (!lastFetchedBlock.current || fromBlock === BigInt(PUB_DEPLOYMENT_BLOCK)) {
+          setProposalIds((prev) => (prev.length ? prev : []));
+        }
         return;
       }
 
-      const ids = logs
+      const newIds = logs
         .map((log) => {
           const args = log.args as unknown as ProposalCreatedLog;
           return args?.proposalId;
         })
-        .filter((id): id is bigint => id !== undefined)
-        .reverse();
+        .filter((id): id is bigint => id !== undefined);
 
-      setProposalIds(ids);
+      if (newIds.length > 0) {
+        setProposalIds((prev) => {
+          const existingSet = new Set(prev.map((id) => id.toString()));
+          const unique = newIds.filter((id) => !existingSet.has(id.toString()));
+          // New proposals go to the front (newest first)
+          return [...unique.reverse(), ...prev];
+        });
+      }
     } catch (err) {
       setError(`Could not fetch proposals`);
     } finally {
@@ -113,6 +140,14 @@ export default function Proposals() {
           </MissingContentView>
         </Then>
         <Else>
+          <ToggleGroup isMultiSelect={false} value={statusFilter} onChange={(val) => setStatusFilter(val ?? "all")}>
+            <Toggle label="All" value="all" />
+            <Toggle label="Active" value={ProposalStatus.ACTIVE} />
+            <Toggle label="Accepted" value={ProposalStatus.ACCEPTED} />
+            <Toggle label="Executable" value={ProposalStatus.EXECUTABLE} />
+            <Toggle label="Executed" value={ProposalStatus.EXECUTED} />
+            <Toggle label="Failed" value={ProposalStatus.FAILED} />
+          </ToggleGroup>
           <DataList.Root
             entityLabel={entityLabel}
             itemsCount={proposalCount}
@@ -121,7 +156,11 @@ export default function Proposals() {
           >
             <DataList.Container SkeletonElement={ProposalDataListItemSkeleton}>
               {proposalIds.map((proposalId) => (
-                <ProposalCard key={proposalId} proposalId={proposalId} />
+                <ProposalCard
+                  key={proposalId}
+                  proposalId={proposalId}
+                  statusFilter={statusFilter !== "all" ? (statusFilter as ProposalStatus) : undefined}
+                />
               ))}
             </DataList.Container>
             <DataList.Pagination />

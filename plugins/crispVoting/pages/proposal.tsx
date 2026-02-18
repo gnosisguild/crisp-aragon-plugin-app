@@ -2,7 +2,7 @@ import { useProposal } from "../hooks/useProposal";
 import ProposalHeader from "../components/proposal/header";
 import { PleaseWaitSpinner } from "@/components/please-wait";
 import { BodySection } from "@/components/proposal/proposalBodySection";
-import { useProposalStatus } from "../hooks/useProposalVariantStatus";
+import { useProposalStatus } from "../hooks/useProposalStatus";
 import { ProposalActions } from "@/components/proposalActions/proposalActions";
 import { CardResources } from "@/components/proposal/cardResources";
 import type { Address } from "viem";
@@ -33,8 +33,6 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
 
   const results = useMemo(() => {
     if (!proposal || !proposal.options || !proposal.tally) return undefined;
-
-    console.log("OPT", proposal.tally);
 
     return proposal.options.map((option, idx) => ({
       option,

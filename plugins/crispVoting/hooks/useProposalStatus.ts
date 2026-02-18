@@ -42,44 +42,6 @@ function isRejected(tally: bigint[], numOptions: number): boolean {
   return false;
 }
 
-export const useProposalVariantStatus = (proposal: Proposal, totalVotingPowerOverride?: bigint) => {
-  const [status, setStatus] = useState({ variant: "neutral", label: "Pending" });
-  const { tokenSupply: totalSupply } = useToken();
-
-  const effectiveTotalSupply = totalVotingPowerOverride ?? totalSupply;
-
-  useEffect(() => {
-    if (!proposal || !proposal?.parameters || !effectiveTotalSupply) return;
-
-    const tally: bigint[] = Array.isArray(proposal.tally) ? proposal.tally : [];
-    const numOptions = proposal.numOptions ?? tally.length;
-    const totalVotes = getTotalVotes(tally);
-    const minVotingPower = (effectiveTotalSupply * BigInt(proposal.parameters.minVotingPower)) / BigInt(100);
-
-    if (proposal?.active) {
-      setStatus({ variant: "info", label: "Active" });
-    } else if (proposal?.executed) {
-      setStatus({ variant: "primary", label: "Executed" });
-    } else if (!proposal?.isTallied) {
-      setStatus({ variant: "info", label: "Tallying" });
-    } else if (totalVotes === 0n) {
-      setStatus({ variant: "critical", label: "Low turnout" });
-    } else if (totalVotes < minVotingPower) {
-      setStatus({ variant: "critical", label: "Low turnout" });
-    } else if (hasPassed(tally, numOptions) && proposal.actions.length > 0) {
-      setStatus({ variant: "success", label: "Executable" });
-    } else if (hasPassed(tally, numOptions) && proposal.actions.length === 0) {
-      setStatus({ variant: "success", label: "Passed" });
-    } else if (isRejected(tally, numOptions)) {
-      setStatus({ variant: "critical", label: "Rejected" });
-    } else {
-      setStatus({ variant: "critical", label: "Low turnout" });
-    }
-  }, [proposal, effectiveTotalSupply]);
-
-  return status;
-};
-
 export const useProposalStatus = (proposal: Proposal, totalVotingPowerOverride?: bigint) => {
   const [status, setStatus] = useState<ProposalStatus>(ProposalStatus.PENDING);
 
