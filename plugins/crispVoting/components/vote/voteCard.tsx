@@ -86,7 +86,7 @@ export const VoteCard = ({
         members. Press <b>Mask</b> to do that.
       </p>
 
-      {(isLoading || txHash) && (
+      {(isLoading || txHash || votingStep === "error" || votingStep === "complete") && (
         <VotingStepIndicator
           step={txHash && !isLoading ? "complete" : votingStep}
           lastActiveStep={lastActiveStep}

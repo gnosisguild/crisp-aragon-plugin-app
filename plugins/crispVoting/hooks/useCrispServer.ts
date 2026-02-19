@@ -1,5 +1,5 @@
 import { PUB_CHAIN, PUB_CRISP_SERVER_URL, PUB_TOKEN_ADDRESS } from "@/constants";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
 import { CreditsMode } from "../utils/types";
 import type { EligibleVoter, IRoundDetailsResponse, VoteData, VotingStep } from "../utils/types";
@@ -119,14 +119,6 @@ export function useCrispServer(): CrispServerState {
     }));
   };
 
-  const resetVotingState = useCallback(() => {
-    setVotingStep("idle");
-    setLastActiveStep(null);
-    setStepMessage("");
-    setIsLoading(false);
-    setError("");
-  }, []);
-
   const handleMask = async (e3Id: bigint, numOptions: string) => {
     const eligibleVoters = await getEligibleVoters(e3Id);
 
@@ -201,7 +193,9 @@ export function useCrispServer(): CrispServerState {
     setIsLoading(true);
     try {
       if (!address) {
-        setError("No address found");
+        setError("No wallet address found");
+        setVotingStep("error");
+        setStepMessage("No wallet address found");
         return;
       }
 
@@ -232,7 +226,7 @@ export function useCrispServer(): CrispServerState {
       // Step 2: Encrypting vote and Generating proof
       setVotingStep("generating_proof");
       setLastActiveStep("generating_proof");
-      setStepMessage("");
+      setStepMessage("Encrypting vote and generating proof...");
 
       let proof;
 
@@ -270,6 +264,7 @@ export function useCrispServer(): CrispServerState {
       // Step 3: Broadcasting
       setVotingStep("broadcasting");
       setLastActiveStep("broadcasting");
+      setStepMessage("Broadcasting vote to the network...");
 
       const response = await fetch(`${PUB_CRISP_SERVER_URL}/voting/broadcast`, {
         method: "POST",
@@ -280,7 +275,9 @@ export function useCrispServer(): CrispServerState {
       });
 
       if (response.status !== 200) {
-        setError("Failed to post vote");
+        setError("Failed to broadcast vote");
+        setVotingStep("error");
+        setStepMessage("Failed to broadcast vote");
         return;
       }
 
@@ -298,9 +295,12 @@ export function useCrispServer(): CrispServerState {
       addAlert(`${label} submitted successfully!`, { timeout: 3000, type: "success" });
     } catch (error) {
       console.error("Error in postVote:", error);
-      setError(error instanceof Error ? error.message : "Unknown error");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      setError(errorMessage);
+      setVotingStep("error");
+      setStepMessage(errorMessage);
     } finally {
-      resetVotingState();
+      setIsLoading(false);
     }
   };
 
