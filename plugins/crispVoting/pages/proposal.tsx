@@ -111,7 +111,11 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
                 txHash={txHash}
               />
             )}
-            <p>{error}</p>
+            {error && (
+              <div className="bg-critical-50 rounded-lg border border-critical-200 px-4 py-3">
+                <p className="text-sm text-critical-600">{error}</p>
+              </div>
+            )}
           </div>
           <div className="flex flex-col gap-y-6 md:w-[33%]">
             {proposalStatus !== ProposalStatus.ACTIVE && (
@@ -119,6 +123,7 @@ export default function ProposalDetail({ index: proposalIdx }: { index: bigint }
                 isSignalling={proposal.actions && proposal.actions.length === 0}
                 proposalId={proposalIdx}
                 results={results}
+                isTallied={proposal.isTallied}
               />
             )}
             <CardResources resources={proposal.resources} title="Resources" />

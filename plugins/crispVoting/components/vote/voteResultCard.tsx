@@ -13,6 +13,7 @@ interface VoteResultCardProps {
   results?: IResult[];
   proposalId: bigint;
   isSignalling?: boolean;
+  isTallied?: boolean;
 }
 
 const OPTION_COLORS = [
@@ -30,7 +31,7 @@ function getColor(index: number): string {
   return OPTION_COLORS[index % OPTION_COLORS.length];
 }
 
-export const VoteResultCard = ({ results, proposalId, isSignalling }: VoteResultCardProps) => {
+export const VoteResultCard = ({ results, proposalId, isSignalling, isTallied = true }: VoteResultCardProps) => {
   const { executeProposal, canExecute, isConfirming: isConfirmingExecution } = useProposalExecute(proposalId);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -71,6 +72,23 @@ export const VoteResultCard = ({ results, proposalId, isSignalling }: VoteResult
 
   if (!results || results.length === 0) {
     return null;
+  }
+
+  if (!isTallied) {
+    return (
+      <Card className="flex flex-col gap-y-5 p-6 shadow-neutral">
+        <Heading size="h3">Results</Heading>
+        <div className="flex flex-col items-center gap-3 py-4">
+          <svg className="animate-spin text-primary-400" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2.5" opacity="0.2" />
+            <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+          </svg>
+          <p className="text-center text-sm text-neutral-500">
+            Results are being tallied by the Enclave network. This may take a few minutes.
+          </p>
+        </div>
+      </Card>
+    );
   }
 
   return (
