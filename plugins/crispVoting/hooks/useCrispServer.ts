@@ -178,7 +178,9 @@ export function useCrispServer(): CrispServerState {
       adjustedBalance = balance / 10n ** BigInt(decimals / 2);
     }
 
-    const vote = Array.from({ length: numOptions }, (_, i) => (i === Number(voteOption) ? adjustedBalance : 0n));
+    const vote = Array.from({ length: numOptions }, (_, i) =>
+      i === Number(voteOption) ? Number.parseInt(adjustedBalance.toString(), 10) : 0
+    );
 
     return {
       signature,
