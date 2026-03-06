@@ -69,14 +69,10 @@ export function useProposal(proposalId: bigint) {
   const eligibleVotersFetched = useRef(false);
 
   useEffect(() => {
-    console.log("Checking proposal status", { proposalId, e3Id: proposalRaw?.e3Id, isTallied, isCommitteeReady });
-    console.log("!proposalRaw?.e3Id", !proposalRaw?.e3Id);
     if (proposalRaw?.e3Id === undefined) return;
     if (isTallied && isCommitteeReady) return;
 
     const roundId = Number(proposalRaw.e3Id.toString());
-
-    console.log("HERE");
 
     fetch(`${PUB_CRISP_SERVER_URL}/${CRISP_SERVER_STATE_LITE_ROUTE}`, {
       method: "POST",
@@ -86,7 +82,6 @@ export function useProposal(proposalId: bigint) {
       .then((res) => (res.ok ? res.json() : null))
       .then(async (data: IRoundDetailsResponse | null) => {
         setIsTallied(data?.status === "Finished");
-        console.log("DATA", data);
         setIsCommitteeReady(data ? data.committee_public_key.length > 0 : false);
 
         if (data && data.credit_mode === CreditsMode.CONSTANT && data.credits && !eligibleVotersFetched.current) {
