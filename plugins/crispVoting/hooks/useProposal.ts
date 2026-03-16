@@ -82,7 +82,11 @@ export function useProposal(proposalId: bigint) {
       .then((res) => (res.ok ? res.json() : null))
       .then(async (data: IRoundDetailsResponse | null) => {
         setIsTallied(data?.status === "Finished");
-        setIsCommitteeReady(data ? data.committee_public_key.length > 0 : false);
+        setIsCommitteeReady(
+          data
+            ? data.committee_public_key.length > 0 && (data.status === "Active" || data.status === "Finished")
+            : false
+        );
 
         if (data && data.credit_mode === CreditsMode.CONSTANT && data.credits && !eligibleVotersFetched.current) {
           eligibleVotersFetched.current = true;

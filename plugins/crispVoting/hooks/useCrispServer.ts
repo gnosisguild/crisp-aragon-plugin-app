@@ -209,6 +209,13 @@ export function useCrispServer(): CrispServerState {
       const roundState = await getRoundState(e3Id);
       const publicKey = new Uint8Array(roundState.committee_public_key);
 
+      if (publicKey.length === 0 || roundState.status !== "Active") {
+        setError("The committee key has not been published yet. Please wait and try again.");
+        setVotingStep("error");
+        setStepMessage("The committee key has not been published yet.");
+        return;
+      }
+
       let voteData;
       if (isAMask) {
         voteData = await handleMask(e3Id, roundState.num_options);
