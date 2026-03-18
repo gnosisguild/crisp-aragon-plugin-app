@@ -103,9 +103,9 @@ export const Navbar: React.FC = () => {
                   "outline-none focus:outline-none focus-visible:ring focus-visible:ring-primary focus-visible:ring-offset" // focus styles
                 )}
               >
-                <img src={PUB_PROJECT_LOGO} width="60" className="shrink-0" alt={PUB_APP_NAME + " logo"} />
-                <span className="text-md leading-tight text-neutral-500">Governed on</span>
-                <img src="/logo-aragon-text.svg" alt="Aragon" className="h-6" />
+                <img src={PUB_PROJECT_LOGO} width="200" className="shrink-0" alt={PUB_APP_NAME + " logo"} />
+                {/* <span className="text-md leading-tight text-neutral-500">Secret ballots demo on</span>
+                <img src="/logo-aragon-text.svg" alt="Aragon" className="h-6" /> */}
               </Link>
               <div className="flex items-center gap-x-2"></div>
             </div>

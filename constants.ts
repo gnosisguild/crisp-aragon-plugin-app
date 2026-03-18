@@ -32,12 +32,12 @@ export const PUB_PINATA_JWT = process.env.NEXT_PUBLIC_PINATA_JWT ?? "";
 
 // General
 export const PUB_DEPLOYMENT_BLOCK = Number(process.env.NEXT_PUBLIC_PLUGIN_DEPLOYMENT_BLOCK ?? 0);
-export const PUB_APP_NAME = "Aragon - CRISP Voting on Enclave";
+export const PUB_APP_NAME = "The Interfold";
 export const PUB_APP_DESCRIPTION = "DAO Voting on Enclave using CRISP";
 export const PUB_TOKEN_SYMBOL = "DVT";
 
-export const PUB_PROJECT_LOGO = "/enclave-banner.svg";
-export const PUB_PROJECT_URL = process.env.NEXT_PUBLIC_PROJECT_URL ?? "https://enclave.gg/";
+export const PUB_PROJECT_LOGO = "/theinterfold-logo.png";
+export const PUB_PROJECT_URL = process.env.NEXT_PUBLIC_PROJECT_URL ?? "https://theinterfold.com/";
 export const PUB_WALLET_ICON = "https://avatars.githubusercontent.com/u/37784886";
-export const PUB_BLOG_URL = "https://blog.enclave.gg/";
-export const PUB_SOCIALS_URL = "https://x.com/EnclaveE3";
+export const PUB_BLOG_URL = "https://blog.theinterfold.com/";
+export const PUB_SOCIALS_URL = "https://x.com/theinterfold";

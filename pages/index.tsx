@@ -4,7 +4,6 @@ import { type ReactNode } from "react";
 import { useAccount } from "wagmi";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { Else, If, Then } from "@/components/if";
-import { PUB_APP_NAME } from "@/constants";
 
 export default function StandardHome() {
   const { isConnected } = useAccount();
@@ -14,26 +13,21 @@ export default function StandardHome() {
     <MainSection narrow={true}>
       <Card>
         <h1 className="line-clamp-1 flex flex-1 shrink-0 text-2xl font-normal leading-tight text-neutral-800 md:text-3xl">
-          Welcome to {PUB_APP_NAME}
+          Secret ballots for onchain governance
         </h1>
         <p className="text-md text-neutral-400">
-          A beaufitul DAO experience with Private voting enabled. Get started by connecting your wallet and selecting
-          CRISP Voting from the menu.
+          A demonstration of confidential coordination for onchain organizations. Individual ballots remain hidden,
+          while the final outcome can be published and verified.
         </p>
         <div className="">
           <IllustrationHuman className="mx-auto mb-10 max-w-96" body="BLOCKS" expression="SMILE_WINK" hairs="CURLY" />
           <div className="flex justify-center">
-            <If true={isConnected}>
+            <If true={!isConnected}>
               <Then>
-                <Button className="mb-2" variant="primary" href="https://devs.aragon.org/" target="_blank">
-                  Learn more about OSx
-                </Button>
-              </Then>
-              <Else>
                 <Button size="md" variant="primary" onClick={() => open()}>
                   <span>Connect wallet</span>
                 </Button>
-              </Else>
+              </Then>
             </If>
           </div>
         </div>

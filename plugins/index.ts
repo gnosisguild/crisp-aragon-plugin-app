@@ -16,7 +16,7 @@ export const plugins: PluginItem[] = [
   {
     id: "crisp-token-voting",
     folderName: "crispVoting",
-    title: "CRISP Voting",
+    title: "Proposals",
     icon: IconType.BLOCKCHAIN_BLOCKCHAIN,
     pluginAddress: PUB_CRISP_VOTING_PLUGIN_ADDRESS,
   },

@@ -147,6 +147,7 @@ export default function Proposals() {
             <Toggle label="Executable" value={ProposalStatus.EXECUTABLE} />
             <Toggle label="Executed" value={ProposalStatus.EXECUTED} />
             <Toggle label="Failed" value={ProposalStatus.FAILED} />
+            <Toggle label="Rejected" value={ProposalStatus.REJECTED} />
           </ToggleGroup>
           <DataList.Root
             entityLabel={entityLabel}
