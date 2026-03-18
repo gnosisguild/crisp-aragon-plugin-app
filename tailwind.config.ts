@@ -24,6 +24,18 @@ const config: Config = {
           900: "rgb(var(--ods-color-primary-900) / <alpha-value>)",
         },
 
+        info: {
+          100: "rgb(var(--ods-color-info-100) / <alpha-value>)",
+          200: "rgb(var(--ods-color-info-200) / <alpha-value>)",
+          300: "rgb(var(--ods-color-info-300) / <alpha-value>)",
+          400: "rgb(var(--ods-color-info-400) / <alpha-value>)",
+          500: "rgb(var(--ods-color-info-500) / <alpha-value>)",
+          600: "rgb(var(--ods-color-info-600) / <alpha-value>)",
+          700: "rgb(var(--ods-color-info-700) / <alpha-value>)",
+          800: "rgb(var(--ods-color-info-800) / <alpha-value>)",
+          900: "rgb(var(--ods-color-info-900) / <alpha-value>)",
+        },
+
         warning: {
           100: "rgb(var(--ods-color-warning-100) / <alpha-value>)",
           200: "rgb(var(--ods-color-warning-200) / <alpha-value>)",
