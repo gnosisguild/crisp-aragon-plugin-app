@@ -11,6 +11,7 @@ import {
 } from "@/constants";
 import { uploadToPinata } from "@/utils/ipfs";
 import { CrispVotingAbi } from "../artifacts/CrispVoting";
+import { maxUint256 } from "viem";
 import { URL_PATTERN } from "@/utils/input-values";
 import { encodeAbiParameters, parseAbiParameters, toHex } from "viem";
 import { useTransactionManager } from "@/hooks/useTransactionManager";
@@ -115,15 +116,13 @@ export function useCreateProposal() {
         BigInt(credits),
       ]);
 
-      // we need to approve tokens first
-      // for now we hardcode the quote of the e3 request as it's a fixed value
-      const quote = 1e6;
       const tx = await approveTokens({
         chainId: PUB_CHAIN.id,
         abi: iVotesAbi,
         address: PUB_ENCLAVE_FEE_TOKEN_ADDRESS,
         functionName: "approve",
-        args: [PUB_CRISP_VOTING_PLUGIN_ADDRESS, BigInt(quote)],
+        // for now we just max approve
+        args: [PUB_CRISP_VOTING_PLUGIN_ADDRESS, maxUint256],
       });
 
       await client?.waitForTransactionReceipt({ hash: tx });
