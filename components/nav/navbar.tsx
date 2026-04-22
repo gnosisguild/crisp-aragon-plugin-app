@@ -70,7 +70,7 @@ export const Navbar: React.FC = () => {
         abi: iVotesAbi,
         address: PUB_TOKEN_ADDRESS,
         functionName: "mint",
-        args: [address, BigInt(10e18)],
+        args: [address, BigInt(1e18)],
       });
     } else {
       addAlert("You already have DAO tokens", { timeout: 1000 });
